@@ -29,9 +29,7 @@ Auth::routes(['register' => false]);
 
 // Routes d'installation
 Route::get('/install', [InstallController::class, 'showDatabase'])->name('install.database');
-Route::post('/install/database', [InstallController::class, 'database'])->name('install.database.store');
-Route::get('/install/admin', [InstallController::class, 'showAdmin'])->name('install.admin');
-Route::post('/install/admin', [InstallController::class, 'install'])->name('install.admin.store');
+Route::post('/install', [InstallController::class, 'install'])->name('install.store');
 Route::get('/install/finish', [InstallController::class, 'finish'])->name('install.finish');
 
 // Redirection de la route racine vers la page de connexion ou admin selon l'état de connexion

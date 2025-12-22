@@ -32,7 +32,7 @@
                     <div class="mb-3">
                         <label for="app_name">Nom de l'application</label>
                         <input type="text" class="form-control" id="app_name" name="app_name" 
-                               value="{{ env('APP_NAME') }}" required>
+                               value="{{ config('app.name') }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="azuriom_url" class="form-label">URL Azuriom</label>

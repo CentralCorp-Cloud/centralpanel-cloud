@@ -33,7 +33,7 @@ class AdminConfigController extends Controller
         $options->save();
 
         // Vérifier si le nom de l'application a changé
-        $currentAppName = env('APP_NAME');
+        $currentAppName = config('app.name');
         if ($validated['app_name'] !== $currentAppName) {
             // Mettre à jour le nom de l'application dans le fichier .env
             $envPath = base_path('.env');
@@ -44,6 +44,9 @@ class AdminConfigController extends Controller
                 $envContent
             );
             File::put($envPath, $newEnvContent);
+            
+            // Vider le cache de configuration pour prendre en compte le changement
+            \Artisan::call('config:clear');
         }
 
         return redirect()->route('admin.config')->with('success', 'Configuration mise à jour avec succès.');

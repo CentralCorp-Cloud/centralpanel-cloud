@@ -1,73 +1,131 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="fr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Connexion - {{ config('app.name', 'CentralCorp Panel') }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background-color: #212529; min-height: 100vh; }
+        .login-card { max-width: 400px; }
+        .form-control { background-color: #2b3035; border-color: #495057; }
+        .form-control:focus { background-color: #343a40; border-color: #3b7ddd; box-shadow: 0 0 0 0.2rem rgba(59,125,221,.25); }
+        .theme-btn { position: fixed; top: 1rem; right: 1rem; }
+        
+        [data-bs-theme="light"] body { background-color: #f5f7fb; }
+        [data-bs-theme="light"] .form-control { background-color: #fff; border-color: #dee2e6; }
+        [data-bs-theme="light"] .form-control:focus { background-color: #fff; }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center py-4">
+    <button class="btn btn-outline-secondary theme-btn" onclick="toggleTheme()" title="Changer le thème">
+        <i class="bi bi-moon-stars" id="themeIcon"></i>
+    </button>
 
-@section('content')
-<div class="container h-100">
-    <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">
-        <div class="col-md-6 col-lg-5">
-            <div class="card border-0 shadow-lg bg-body-tertiary">
-                <div class="card-body p-4 p-md-5">
-                    <div class="text-center mb-4">
-                        <h1 class="h3 fw-bold text-primary mb-2">{{ __('Connexion') }}</h1>
-                        <p class="text-body-secondary">{{ __('Bienvenue ! Connectez-vous pour continuer.') }}</p>
+    <div class="container">
+        <div class="login-card mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <a href="{{ url('/') }}">
+                    <div class="bg-primary rounded d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                        <i class="bi bi-box-seam text-white fs-4"></i>
                     </div>
+                </a>
+                <h1 class="h4 fw-bold mb-1">{{ config('app.name', 'CentralCorp Panel') }}</h1>
+                <p class="text-secondary small mb-0">Panel d'administration</p>
+            </div>
+            
+            <!-- Login Card -->
+            <div class="card border-secondary">
+                <div class="card-body p-4">
+                    <h2 class="h5 text-center mb-1">Connexion</h2>
+                    <p class="text-secondary small text-center mb-4">Connectez-vous pour accéder au panel</p>
+
+                    @if($errors->any())
+                        <div class="alert alert-danger py-2 small">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            @foreach($errors->all() as $error)
+                                {{ $error }}
+                            @endforeach
+                        </div>
+                    @endif
 
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
+                        
                         <div class="mb-3">
-                            <label for="email" class="form-label text-body-secondary small fw-medium">{{ __('Adresse e-mail') }}</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-body-tertiary border-end-0">
-                                    <i class="bi bi-envelope text-body-secondary"></i>
-                                </span>
-                                <input id="email" type="email" class="form-control border-start-0 @error('email') is-invalid @enderror" 
-                                    name="email" value="{{ old('email') }}" required autocomplete="email" autofocus
-                                    placeholder="exemple@email.com">
-                            </div>
-                            @error('email')
-                                <div class="invalid-feedback d-block mt-1">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                            <label for="email" class="form-label small">Adresse email</label>
+                            <input type="email" 
+                                   class="form-control @error('email') is-invalid @enderror" 
+                                   id="email" 
+                                   name="email" 
+                                   value="{{ old('email') }}" 
+                                   required 
+                                   autocomplete="email" 
+                                   autofocus
+                                   placeholder="exemple@email.com">
                         </div>
-
-                        <div class="mb-4">
-                            <label for="password" class="form-label text-body-secondary small fw-medium">{{ __('Mot de passe') }}</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-body-tertiary border-end-0">
-                                    <i class="bi bi-lock text-body-secondary"></i>
-                                </span>
-                                <input id="password" type="password" class="form-control border-start-0 @error('password') is-invalid @enderror" 
-                                    name="password" required autocomplete="current-password"
-                                    placeholder="••••••••">
-                            </div>
-                            @error('password')
-                                <div class="invalid-feedback d-block mt-1">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label small">Mot de passe</label>
+                            <input type="password" 
+                                   class="form-control @error('password') is-invalid @enderror" 
+                                   id="password" 
+                                   name="password" 
+                                   required 
+                                   autocomplete="current-password"
+                                   placeholder="••••••••">
                         </div>
-
+                        
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                                <label class="form-check-label text-body-secondary small" for="remember">
-                                    {{ __('Se souvenir de moi') }}
-                                </label>
+                                <label class="form-check-label small" for="remember">Se souvenir</label>
                             </div>
                             @if (Route::has('password.request'))
-                                <a class="text-primary small text-decoration-none" href="{{ route('password.request') }}">
-                                    {{ __('Mot de passe oublié ?') }}
+                                <a class="small text-primary text-decoration-none" href="{{ route('password.request') }}">
+                                    Mot de passe oublié ?
                                 </a>
                             @endif
                         </div>
-
-                        <button type="submit" class="btn btn-primary w-100 py-2 fw-medium">
-                            {{ __('Connexion') }}
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Connexion
                         </button>
                     </form>
                 </div>
             </div>
+            
+            <p class="text-secondary small text-center mt-4 mb-0">
+                &copy; {{ date('Y') }} {{ config('app.name', 'CentralCorp') }}
+            </p>
         </div>
     </div>
-</div>
-@endsection
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            const isDark = html.getAttribute('data-bs-theme') === 'dark';
+            
+            html.setAttribute('data-bs-theme', isDark ? 'light' : 'dark');
+            icon.className = isDark ? 'bi bi-sun' : 'bi bi-moon-stars';
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+        
+        // Load saved theme
+        (function() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-bs-theme', saved);
+            document.getElementById('themeIcon').className = saved === 'dark' ? 'bi bi-moon-stars' : 'bi bi-sun';
+        })();
+    </script>
+</body>
+</html>

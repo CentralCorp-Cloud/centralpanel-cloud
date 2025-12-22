@@ -225,26 +225,35 @@ class InstallController extends Controller
         }
     }
 
-    public function database(Request $request)
+    /**
+     * Unified installation handler - handles both database setup and admin creation
+     */
+    public function install(Request $request)
     {
         try {
+            // Validate all fields: database + admin
             $this->validate($request, [
                 'type' => ['required', Rule::in(array_keys($this->databaseDrivers))],
                 'host' => ['required_unless:type,sqlite'],
                 'port' => ['nullable', 'integer', 'between:1,65535'],
                 'database' => ['required_unless:type,sqlite'],
                 'user' => ['required_unless:type,sqlite'],
-                'password' => ['nullable'],
+                'db_password' => ['nullable'],
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255',
+                'password' => ['required', 'confirmed', Password::default()],
             ]);
 
             $this->prepareEnvironment();
+            
+            // Step 1: Configure database
             $databaseType = $request->input('type');
 
             if ($databaseType === 'sqlite') {
-                // Créer le fichier SQLite s'il n'existe pas
+                // Create SQLite database file
                 $this->ensureDatabaseExists();
                 
-                // Mettre à jour le .env pour SQLite avec le chemin database_path
+                // Update .env for SQLite
                 $this->updateEnvValues([
                     'DB_CONNECTION' => 'sqlite',
                     'DB_DATABASE' => database_path('database.sqlite'),
@@ -254,21 +263,18 @@ class InstallController extends Controller
                     'DB_PASSWORD' => '',
                 ]);
                 
-                // Vider le cache de configuration et tester la connexion SQLite
-                try {
-                    DB::purge('sqlite');
-                    Config::set('database.connections.sqlite.database', database_path('database.sqlite'));
-                    DB::connection('sqlite')->getPdo();
-                } catch (Exception $e) {
-                    throw new Exception('Impossible de se connecter à la base de données SQLite: ' . $e->getMessage());
-                }
+                // Configure and test SQLite connection
+                DB::purge('sqlite');
+                Config::set('database.connections.sqlite.database', database_path('database.sqlite'));
+                DB::connection('sqlite')->getPdo();
             } else {
                 $host = $request->input('host');
-                $port = $request->input('port');
+                $port = $request->input('port') ?: '3306';
                 $database = $request->input('database');
                 $user = $request->input('user');
-                $password = $request->input('password');
+                $password = $request->input('db_password');
 
+                // Test connection first
                 Config::set('database.connections.test', [
                     'driver' => $databaseType,
                     'host' => $host,
@@ -278,62 +284,43 @@ class InstallController extends Controller
                     'password' => $password,
                 ]);
 
-                DB::connection('test')->getPdo(); // Test connection
+                DB::connection('test')->getPdo();
 
-                $this->updateEnvDatabase($request);
+                // Update .env with MySQL config
+                $this->updateEnvValues([
+                    'DB_CONNECTION' => $databaseType,
+                    'DB_HOST' => $host,
+                    'DB_PORT' => $port,
+                    'DB_DATABASE' => $database,
+                    'DB_USERNAME' => $user,
+                    'DB_PASSWORD' => $password,
+                ]);
+
+                // Configure the default connection for migrations
+                Config::set('database.default', $databaseType);
+                Config::set("database.connections.{$databaseType}", [
+                    'driver' => $databaseType,
+                    'host' => $host,
+                    'port' => $port,
+                    'database' => $database,
+                    'username' => $user,
+                    'password' => $password,
+                    'charset' => 'utf8mb4',
+                    'collation' => 'utf8mb4_unicode_ci',
+                    'prefix' => '',
+                    'strict' => true,
+                    'engine' => null,
+                ]);
             }
 
-            return redirect()->route('install.admin');
-        } catch (Throwable $t) {
-            return redirect()->back()->withInput()->with('error', 'Erreur de base de données: ' . $t->getMessage());
-        }
-    }
-
-    private function updateEnvDatabase(Request $request)
-    {
-        $this->updateEnvValues([
-            'DB_CONNECTION' => $request->input('type'),
-            'DB_HOST' => $request->input('host'),
-            'DB_PORT' => $request->input('port') ?: '3306',
-            'DB_DATABASE' => $request->input('database'),
-            'DB_USERNAME' => $request->input('user'),
-            'DB_PASSWORD' => $request->input('password'),
-        ]);
-    }
-
-    public function showAdmin()
-    {
-        try {
-            if (!File::exists(base_path('.env'))) {
-                return redirect()->route('install.database');
-            }
-
-            return view('install.admin');
-        } catch (Exception $e) {
-            return response($e->getMessage(), 500);
-        }
-    }
-
-    public function install(Request $request)
-    {
-        try {
-            $this->validate($request, [
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255',
-                'password' => ['required', 'confirmed', Password::default()],
-            ]);
-
-            $this->prepareEnvironment();
-
-            // Vider seulement les caches basés sur fichiers (pas la base de données)
+            // Step 2: Clear caches and run migrations
             Artisan::call('config:clear');
             Artisan::call('route:clear');
             Artisan::call('view:clear');
 
-            // Exécuter les migrations AVANT tout cache database
             Artisan::call('migrate:fresh', ['--force' => true]);
 
-            // Créer l'utilisateur administrateur
+            // Step 3: Create admin user
             $user = User::create([
                 'name' => $request->input('name'),
                 'email' => $request->input('email'),
@@ -342,36 +329,30 @@ class InstallController extends Controller
                 'email_verified_at' => now(),
             ]);
 
-            // Commandes post-installation
+            // Step 4: Post-installation setup
             Artisan::call('storage:link');
             
-            // Marquer l'installation comme terminée AVANT de générer la nouvelle clé
-            // pour éviter un état incohérent où la clé n'est plus temporaire mais le fichier installed n'existe pas
             File::put(storage_path('installed'), 'Installation complétée le ' . now()->format('Y-m-d H:i:s') . "\nAdmin: " . $user->email);
             
-            // Générer une nouvelle clé d'application
             $this->generateAppKey();
 
-            // Maintenant on peut utiliser cache:clear en toute sécurité
             try {
                 Artisan::call('cache:clear');
             } catch (Exception $e) {
-                // Ignorer les erreurs de cache si elles surviennent
+                // Ignore cache errors
             }
 
-            // Optimiser pour la production
             Artisan::call('config:cache');
             Artisan::call('route:cache');
             Artisan::call('view:cache');
 
-            // Forcer l'URL correcte avant la redirection
             $correctUrl = $this->getCorrectAppUrl();
             $this->updateEnvValues(['APP_URL' => $correctUrl]);
             Config::set('app.url', $correctUrl);
 
             return redirect()->route('install.finish')->with('success', 'Installation terminée avec succès !');
-        } catch (Exception $e) {
-            return back()->withInput()->with('error', 'Une erreur est survenue lors de l\'installation: ' . $e->getMessage());
+        } catch (Throwable $t) {
+            return back()->withInput()->with('error', 'Une erreur est survenue lors de l\'installation: ' . $t->getMessage());
         }
     }
 
