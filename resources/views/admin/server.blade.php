@@ -8,7 +8,15 @@
 
 @section('content')
     <div class="container-fluid p-0">
-        <h2 class="mb-4 fw-bold">Liste des serveurs Azuriom</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Liste des serveurs Azuriom</h2>
+            <form method="POST" action="{{ route('admin.server.sync') }}" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-repeat me-1"></i> Synchroniser avec Azuriom
+                </button>
+            </form>
+        </div>
 
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -66,7 +74,12 @@
                                             <td><span class="badge bg-info">{{ $server['type'] }}</span></td>
                                             <td>
                                                 @if($server['icon'])
-                                                    <img src="{{ rtrim($options->azuriom_url, '/') . $server['icon'] }}" 
+                                                    @php
+                                                        $iconPath = $server['icon'];
+                                                        $iconPath = ltrim(str_replace('storage/', '', $iconPath), '/');
+                                                        $iconUrl = rtrim($options->azuriom_url, '/') . '/storage/' . $iconPath;
+                                                    @endphp
+                                                    <img src="{{ $iconUrl }}" 
                                                          alt="Icône du serveur" 
                                                          class="img-thumbnail rounded-circle" 
                                                          style="max-width: 40px; max-height: 40px;">

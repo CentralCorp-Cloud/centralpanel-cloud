@@ -93,7 +93,7 @@ class ApiController extends Controller
             "video_url" => $ui ? $this->extractYouTubeVideoId($ui->video_url) : "a336KPLjsZU",
             "video_type" => $ui ? $this->detectVideoType($ui->video_url) : "short",
             "email_verified" => $general ? (bool)$general->email_verified : false,
-            "server_icon" => $server ? $baseURL . '/storage/' . $server->icon : "https://conflictura.eu/storage/server_icon/tp4hf0FQJTiSBfH30uOYy0XA0f1ieMvfFvl2VOBp.png",
+            "server_icon" => $server && $server->icon && $general && $general->azuriom_url ? rtrim($general->azuriom_url, '/') . '/storage/' . ltrim(str_replace('storage/', '', $server->icon), '/') : null,
             "role_data" => $roleData,
             "ignored" => $ignored,
             "whitelist" => $whitelist,

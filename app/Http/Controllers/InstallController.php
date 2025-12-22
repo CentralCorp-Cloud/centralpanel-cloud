@@ -41,16 +41,18 @@ class InstallController extends Controller
         $this->hasRequirements = ! in_array(false, $this->requirements, true);
 
         $this->middleware(function (Request $request, callable $next) {
-            // Vérifier si l'installation est déjà terminée
-            if (File::exists(storage_path('installed'))) {
+            $isInstalled = File::exists(storage_path('installed'));
+            $hasRealKey = config('app.key') !== self::TEMP_KEY;
+            
+            // L'application est considérée comme installée si le fichier installed existe
+            // ET que la clé n'est plus temporaire
+            if ($isInstalled && $hasRealKey) {
                 return redirect('/')->with('error', 'Le système est déjà installé.');
             }
-
-            // Vérifier si l'application utilise encore la clé temporaire
-            // Ceci permet à Laravel de démarrer et nous donne accès aux routes d'installation
-            if (config('app.key') !== self::TEMP_KEY) {
-                return redirect('/')->with('error', 'Installation déjà effectuée.');
-            }
+            
+            // Si seulement une des conditions est vraie, il y a un état incohérent
+            // On permet l'accès aux routes d'installation pour corriger
+            // (ex: fichier installed existe mais clé temporaire, ou vice versa)
 
             return $next($request);
         });

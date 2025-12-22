@@ -67,10 +67,9 @@
                         </div>
                         <div class="col-md-4 text-end">
                             @if(isset($activeTheme['saved_version']) && $activeTheme['saved_version'] !== $activeTheme['version'])
-                                <form action="{{ route('admin.theme.download', $activeTheme['id']) }}" method="POST" class="d-inline">
+                                <form action="{{ route('admin.theme.download', $activeTheme['id']) }}" method="POST" class="d-inline theme-download-form">
                                     @csrf
-                                    <button type="submit" class="btn btn-warning" 
-                                            onclick="return confirm('Mettre à jour vers la version {{ $activeTheme['version'] }} ?')">
+                                    <button type="button" class="btn btn-warning btn-download-theme">
                                         <i class="bi bi-download me-1"></i>Mettre à jour
                                     </button>
                                 </form>
@@ -176,10 +175,9 @@
                                         </td>
                                         <td class="align-middle">
                                             @if($theme['is_owner'] || $theme['price'] == 0 || $theme['buy'])
-                                                <form action="{{ route('admin.theme.download', $theme['id']) }}" method="POST" style="display: inline;">
+                                                <form action="{{ route('admin.theme.download', $theme['id']) }}" method="POST" style="display: inline;" class="theme-download-form">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-sm btn-success" 
-                                                            onclick="return confirm('Êtes-vous sûr de vouloir installer ce thème ? Le thème actuel sera remplacé.')">
+                                                    <button type="button" class="btn btn-sm btn-success btn-download-theme">
                                                         <i class="fas fa-download me-1"></i>
                                                         @if($activeThemeId && $theme['id'] == $activeThemeId)
                                                             Réinstaller
@@ -238,7 +236,42 @@
 @endsection
 
 @section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Gestion du téléchargement de thèmes avec confirmation SweetAlert2
+    document.querySelectorAll('.btn-download-theme').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            
+            Swal.fire({
+                title: 'Installer ce thème ?',
+                text: 'Le thème actuel sera remplacé par celui-ci.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-download me-1"></i> Oui, installer',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Afficher un loader pendant le téléchargement
+                    Swal.fire({
+                        title: 'Installation en cours...',
+                        html: 'Veuillez patienter pendant le téléchargement et l\'installation du thème.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    form.submit();
+                }
+            });
+        });
+    });
+
     // Auto-refresh de la page toutes les 60 secondes pour vérifier les nouveaux achats
     setTimeout(function() {
         if (document.hidden === false) {

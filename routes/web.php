@@ -36,8 +36,12 @@ Route::get('/install/finish', [InstallController::class, 'finish'])->name('insta
 
 // Redirection de la route racine vers la page de connexion ou admin selon l'état de connexion
 Route::get('/', function () {
-    // Vérifier si l'installation est terminée
-    if (!File::exists(storage_path('installed')) || config('app.key') === \App\Http\Controllers\InstallController::TEMP_KEY) {
+    $isInstalled = File::exists(storage_path('installed'));
+    $hasRealKey = config('app.key') !== \App\Http\Controllers\InstallController::TEMP_KEY;
+    
+    // L'application est installée seulement si les DEUX conditions sont vraies
+    // Cela évite les boucles de redirection en cas d'état incohérent
+    if (!$isInstalled || !$hasRealKey) {
         return redirect()->route('install.database');
     }
     
@@ -62,12 +66,15 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('/server', [AdminServerController::class, 'show'])->name('admin.server');
     Route::post('/server/update', [AdminServerController::class, 'update'])->name('admin.server.update');
     Route::post('/server/set-default', [AdminServerController::class, 'setDefaultServer'])->name('admin.server.set-default');
+    Route::post('/server/sync', [AdminServerController::class, 'sync'])->name('admin.server.sync');
 
     Route::get('/ui', [AdminUIController::class, 'show'])->name('admin.ui');
     Route::post('/ui/update', [AdminUIController::class, 'update'])->name('admin.ui.update');
 
     Route::get('/whitelist', [AdminWhitelistController::class, 'index'])->name('admin.whitelist');
     Route::post('/whitelist', [AdminWhitelistController::class, 'store'])->name('admin.whitelist.store');
+    Route::get('/whitelist/fetch-users', [AdminWhitelistController::class, 'fetchUsers'])->name('admin.whitelist.fetchUsers');
+    Route::get('/whitelist/fetch-roles', [AdminWhitelistController::class, 'fetchRoles'])->name('admin.whitelist.fetchRoles');
     Route::delete('/whitelist/user/{id}', [AdminWhitelistController::class, 'destroyUser'])->name('admin.whitelist.destroyUser');
     Route::delete('/whitelist/role/{id}', [AdminWhitelistController::class, 'destroyRole'])->name('admin.whitelist.destroyRole');
 
@@ -116,7 +123,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
 Route::get('/file-manager', function () {
     return view('admin.file-manager');
-})->name('admin.file-manager');
+})->name('admin.file-manager')->middleware('auth');
 
 Route::prefix('utils')->group(function () {
     Route::get('/api', [ApiController::class, 'getOptions']);

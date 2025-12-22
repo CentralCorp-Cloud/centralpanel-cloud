@@ -16,59 +16,109 @@ class AdminServerController extends Controller
         try {
             $this->azuriomApi = new AzuriomApi();
         } catch (\RuntimeException $e) {
-            // On ne fait rien ici, on gérera l'erreur dans la méthode show()
+            // On ne fait rien ici, on gérera l'erreur dans les méthodes
         }
     }
 
+    /**
+     * Affiche la page serveur depuis la base de données (rapide)
+     */
     public function show()
     {
         $options = OptionsGeneral::first();
-        $servers = [];
         $error = null;
+
+        // Charger les serveurs depuis la BDD uniquement (pas d'appel API)
+        $servers = OptionsServer::all();
+        
+        // Construire le tableau des serveurs par défaut
         $defaultServers = [];
+        foreach ($servers as $server) {
+            $defaultServers[$server->server_id] = $server->is_default;
+        }
+
+        // Transformer en format compatible avec la vue
+        $serversArray = $servers->map(function($server) {
+            return [
+                'id' => $server->server_id,
+                'name' => $server->server_name,
+                'address' => $server->server_ip,
+                'port' => $server->server_port,
+                'type' => $server->type ?? 'minecraft',
+                'icon' => $server->icon,
+            ];
+        })->toArray();
+
+        return view('admin.server', [
+            'servers' => $serversArray,
+            'options' => $options,
+            'error' => $error,
+            'defaultServers' => $defaultServers
+        ]);
+    }
+
+    /**
+     * Synchronise les serveurs depuis l'API Azuriom (appelé manuellement)
+     */
+    public function sync()
+    {
+        $options = OptionsGeneral::first();
+        
+        if (!$options || !$options->azuriom_url) {
+            return redirect()->route('admin.server')->with('error', 'Veuillez d\'abord configurer l\'URL Azuriom dans les paramètres généraux.');
+        }
 
         try {
             if (!$this->azuriomApi) {
                 $this->azuriomApi = new AzuriomApi();
             }
 
-            // Récupérer la liste des serveurs depuis l'API Azuriom
             $serversResponse = $this->azuriomApi->getServers();
-            if ($serversResponse->successful()) {
-                $servers = $serversResponse->json();
-                
-                // Synchroniser les serveurs dans la base de données
-                $isFirstServer = true;
-                $hasDefaultServer = OptionsServer::where('is_default', true)->exists();
-                
-                foreach ($servers as $server) {
-                    $serverModel = OptionsServer::updateOrCreate(
-                        ['server_id' => $server['id']],
-                        [
-                            'server_name' => $server['name'],
-                            'server_ip' => $server['address'],
-                            'server_port' => (string)$server['port'],
-                            'icon' => $server['icon'] ?? null,
-                            'type' => $server['type']
-                        ]
-                    );
-
-                    // Si aucun serveur n'est par défaut, définir le premier comme par défaut
-                    if (!$hasDefaultServer && $isFirstServer) {
-                        $serverModel->is_default = true;
-                        $serverModel->save();
-                        $hasDefaultServer = true;
-                    }
-
-                    $defaultServers[$server['id']] = $serverModel->is_default;
-                    $isFirstServer = false;
-                }
+            if (!$serversResponse->successful()) {
+                throw new \RuntimeException('Impossible de contacter l\'API Azuriom');
             }
-        } catch (\RuntimeException $e) {
-            $error = $e->getMessage();
-        }
 
-        return view('admin.server', compact('servers', 'options', 'error', 'defaultServers'));
+            $servers = $serversResponse->json();
+            $syncedCount = 0;
+            $isFirstServer = true;
+            $hasDefaultServer = OptionsServer::where('is_default', true)->exists();
+            
+            foreach ($servers as $server) {
+                // Nettoyer le chemin de l'icône (enlever /storage/ au début si présent)
+                $iconPath = $server['icon'] ?? null;
+                if ($iconPath) {
+                    $iconPath = ltrim($iconPath, '/');
+                    if (str_starts_with($iconPath, 'storage/')) {
+                        $iconPath = substr($iconPath, 8); // Enlever "storage/"
+                    }
+                }
+                
+                $serverModel = OptionsServer::updateOrCreate(
+                    ['server_id' => $server['id']],
+                    [
+                        'server_name' => $server['name'],
+                        'server_ip' => $server['address'],
+                        'server_port' => (string)$server['port'],
+                        'icon' => $iconPath,
+                        'type' => $server['type']
+                    ]
+                );
+
+                if (!$hasDefaultServer && $isFirstServer) {
+                    $serverModel->is_default = true;
+                    $serverModel->save();
+                    $hasDefaultServer = true;
+                }
+
+                $syncedCount++;
+                $isFirstServer = false;
+            }
+
+            return redirect()->route('admin.server')->with('success', "{$syncedCount} serveur(s) synchronisé(s) avec succès !");
+
+        } catch (\RuntimeException $e) {
+            return redirect()->route('admin.server')->with('error', 'Erreur de synchronisation : ' . $e->getMessage());
+        }
     }
 
     public function update(Request $request)
