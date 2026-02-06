@@ -13,7 +13,7 @@ use RuntimeException;
 class UpdateManager
 {
     protected Filesystem $files;
-    protected string $apiUrl = 'https://market.vexato.tech/api/download/panel';
+    protected string $apiUrl = 'https://api.github.com/repos/CentralCorp/centralpanel-v2/releases/latest';
     protected string $currentVersion;
 
     public function __construct(Filesystem $files, string $currentVersion)
@@ -28,9 +28,37 @@ class UpdateManager
     public function fetchUpdateInfo(): ?array
     {
         try {
-            $response = Http::timeout(10)->get($this->apiUrl);
+            $response = Http::withHeaders([
+                'User-Agent' => 'CentralPanel-UpdateManager',
+                'Accept' => 'application/vnd.github.v3+json',
+            ])->timeout(10)->get($this->apiUrl);
+
             if ($response->successful()) {
-                return $response->json();
+                $data = $response->json();
+                
+                $version = isset($data['tag_name']) ? ltrim($data['tag_name'], 'v') : null;
+                
+                $zipUrl = null;
+                $fileName = null;
+
+                if (!empty($data['assets']) && is_array($data['assets'])) {
+                    foreach ($data['assets'] as $asset) {
+                        if (str_ends_with($asset['name'], '.zip')) {
+                            $zipUrl = $asset['browser_download_url'];
+                            $fileName = $asset['name'];
+                            break;
+                        }
+                    }
+                }
+
+                if ($version && $zipUrl && $fileName) {
+                    return [
+                        'version' => $version,
+                        'url' => $zipUrl,
+                        'file' => $fileName,
+                        'hash' => null,
+                    ];
+                }
             }
         } catch (\Exception $e) {
             Log::error('UpdateManager fetch error: ' . $e->getMessage());
@@ -63,7 +91,9 @@ class UpdateManager
         if ($this->files->exists($filePath)) {
             $this->files->delete($filePath);
         }
-        $response = Http::timeout(60)->withOptions(['sink' => $filePath])->get($info['url']);
+        $response = Http::withHeaders([
+            'User-Agent' => 'CentralPanel-UpdateManager',
+        ])->timeout(60)->withOptions(['sink' => $filePath])->get($info['url']);
         if (!$response->successful()) {
             throw new RuntimeException('Failed to download update file.');
         }

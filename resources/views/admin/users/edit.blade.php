@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Modifier l\'utilisateur')
+@section('title', __('messages.users.edit_user'))
 
 @section('content')
 <div class="container-fluid">
@@ -8,7 +8,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Modifier l'utilisateur</h3>
+                    <h3 class="card-title">{{ __('messages.users.edit_user') }}</h3>
                 </div>
                 <div class="card-body">
                     @if(session('success'))
@@ -22,7 +22,7 @@
                         @method('PUT')
                         
                         <div class="form-group">
-                            <label for="name">Nom</label>
+                            <label for="name">{{ __('messages.users.name') }}</label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" 
                                    id="name" name="name" value="{{ old('name', $user->name) }}" required>
                             @error('name')
@@ -31,7 +31,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="email">Email</label>
+                            <label for="email">{{ __('messages.users.email') }}</label>
                             <input type="email" class="form-control @error('email') is-invalid @enderror" 
                                    id="email" name="email" value="{{ old('email', $user->email) }}" required>
                             @error('email')
@@ -40,7 +40,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="password">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+                            <label for="password">{{ __('messages.users.new_password') }}</label>
                             <input type="password" class="form-control @error('password') is-invalid @enderror" 
                                    id="password" name="password">
                             @error('password')
@@ -49,8 +49,8 @@
                         </div>
 
                         <div class="form-group">
-                            <button type="submit" class="btn btn-primary">Mettre à jour</button>
-                            <a href="{{ route('admin.users') }}" class="btn btn-secondary">Retour</a>
+                            <button type="submit" class="btn btn-primary">{{ __('messages.common.update') }}</button>
+                            <a href="{{ route('admin.users') }}" class="btn btn-secondary">{{ __('messages.common.back') }}</a>
                         </div>
                     </form>
                 </div>
@@ -58,4 +58,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

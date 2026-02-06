@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Paramètres du Loader')
-@section('page-title', 'Paramètres du Loader')
+@section('title', __('messages.loader.title'))
+@section('page-title', __('messages.loader.title'))
 
 @section('content')
 <div class="container-fluid px-4 py-3">
@@ -29,18 +29,18 @@
                 @csrf
 
                 <div class="mb-3">
-                    <label for="minecraft_version" class="form-label fw-semibold">Version de Minecraft</label>
+                    <label for="minecraft_version" class="form-label fw-semibold">{{ __('messages.loader.minecraft_version') }}</label>
                     <input type="text" class="form-control" id="minecraft_version" name="minecraft_version" placeholder="ex: 1.20.1" value="{{ old('minecraft_version', $row->minecraft_version ?? '') }}">
                 </div>
 
                 <div class="form-check form-switch mb-3">
                     <input type="hidden" name="loader_activation" value="0">
                     <input type="checkbox" class="form-check-input" id="loader-activation" name="loader_activation" value="1" {{ ($row->loader_activation ?? false) ? 'checked' : '' }}>
-                    <label class="form-check-label" for="loader-activation">Activer le loader</label>
+                    <label class="form-check-label" for="loader-activation">{{ __('messages.loader.enable_loader') }}</label>
                 </div>
 
                 <div class="mb-3">
-                    <label for="loader-type" class="form-label fw-semibold">Type de Loader</label>
+                    <label for="loader-type" class="form-label fw-semibold">{{ __('messages.loader.loader_type') }}</label>
                     <select class="form-select" id="loader-type" name="loader_type">
                         @foreach (['forge', 'fabric', 'legacyfabric', 'neoForge', 'quilt'] as $type)
                             <option value="{{ $type }}" {{ (isset($row) && $row->loader_type === $type) ? 'selected' : '' }}>
@@ -51,12 +51,12 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="loader-build-version" class="form-label fw-semibold">Version de Build</label>
+                    <label for="loader-build-version" class="form-label fw-semibold">{{ __('messages.loader.build_version') }}</label>
                     <select class="form-select" id="loader-build-version" name="loader_forge_version"></select>
                     <input type="text" class="form-control d-none" id="loader-build-version-input" name="loader_build_version" value="{{ old('loader_build_version', $row->loader_build_version ?? '') }}">
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-sm rounded-2">Enregistrer</button>
+                <button type="submit" class="btn btn-primary btn-sm rounded-2">{{ __('messages.common.save') }}</button>
             </form>
         </div>
     </div>
@@ -90,7 +90,7 @@
                     });
                     toggleBuildInputs(true);
                 })
-                .catch(err => console.error('Erreur de chargement Forge:', err));
+                .catch(err => console.error('{{ __('messages.common.error') }}:', err));
         }
 
         function loadFabricVersions() {
@@ -107,7 +107,7 @@
                     });
                     toggleBuildInputs(true);
                 })
-                .catch(err => console.error('Erreur de chargement Fabric:', err));
+                .catch(err => console.error('{{ __('messages.common.error') }}:', err));
         }
 
         loaderType.addEventListener('change', () => {

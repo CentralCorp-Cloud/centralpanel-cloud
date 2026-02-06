@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container mt-4">
-    <h1>Mise à jour du panel</h1>
+    <h1>{{ __('messages.update_page.header') }}</h1>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
@@ -16,12 +16,12 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <p>Version actuelle : <strong>{{ $currentVersion }}</strong></p>
+            <p>{{ __('messages.update_page.current_version') }} : <strong>{{ $currentVersion }}</strong></p>
             @if($info)
-                <p>Dernière version disponible : <strong>{{ $info['version'] ?? '?' }}</strong></p>
-                <p>PHP requis : <strong>{{ $info['php_version'] ?? '?' }}</strong></p>
+                <p>{{ __('messages.update_page.latest_version') }} : <strong>{{ $info['version'] ?? '?' }}</strong></p>
+                <p>{{ __('messages.update_page.php_required') }} : <strong>{{ $info['php_version'] ?? '?' }}</strong></p>
             @else
-                <p>Impossible de récupérer les informations de mise à jour.</p>
+                <p>{{ __('messages.update_page.unable_fetch') }}</p>
             @endif
         </div>
     </div>
@@ -29,10 +29,10 @@
     @if($hasUpdate)
         <form method="POST" action="{{ route('admin.update.run') }}">
             @csrf
-            <button type="submit" class="btn btn-primary">Mettre à jour maintenant</button>
+            <button type="submit" class="btn btn-primary">{{ __('messages.update_page.update_now') }}</button>
         </form>
     @else
-        <div class="alert alert-info">Aucune mise à jour disponible.</div>
+        <div class="alert alert-info">{{ __('messages.update_page.no_update') }}</div>
     @endif
 </div>
 @endsection

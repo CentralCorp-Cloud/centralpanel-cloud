@@ -32,7 +32,7 @@ class AdminLoaderController extends Controller
         $optionsLoader->fill($request->all());
         $optionsLoader->save();
 
-        return redirect()->back()->with('success', 'Paramètres du loader mis à jour.');
+        return redirect()->back()->with('success', __('messages.flash.loader_updated'));
     }
 
     public function getForgeBuilds(Request $request)

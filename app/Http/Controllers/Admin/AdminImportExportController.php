@@ -81,10 +81,10 @@ class AdminImportExportController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.index')->with('success', 'Configuration importée avec succès !');
+            return redirect()->route('admin.index')->with('success', __('messages.flash.config_imported'));
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('admin.index')->with('error', 'Erreur lors de l\'import : ' . $e->getMessage());
+            return redirect()->route('admin.index')->with('error', __('messages.flash.import_error') . ' ' . $e->getMessage());
         }
     }
-} 
+}

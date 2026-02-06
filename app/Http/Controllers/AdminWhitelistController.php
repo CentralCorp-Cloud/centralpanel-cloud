@@ -37,7 +37,7 @@ class AdminWhitelistController extends Controller
     public function fetchUsers(Request $request)
     {
         if (!$this->azuriomApi) {
-            return response()->json(['error' => 'API Azuriom non configurée'], 503);
+            return response()->json(['error' => __('messages.flash.azuriom_api_error')], 503);
         }
 
         $allUsers = $this->azuriomApi->getUsers();
@@ -76,7 +76,7 @@ class AdminWhitelistController extends Controller
     public function fetchRoles(Request $request)
     {
         if (!$this->azuriomApi) {
-            return response()->json(['error' => 'API Azuriom non configurée'], 503);
+            return response()->json(['error' => __('messages.flash.azuriom_api_error')], 503);
         }
 
         $allRoles = $this->azuriomApi->getRoles();
@@ -135,18 +135,18 @@ class AdminWhitelistController extends Controller
             }
         }
 
-        return redirect()->route('admin.whitelist')->with('success', 'Whitelist mise à jour avec succès.');
+        return redirect()->route('admin.whitelist')->with('success', __('messages.flash.whitelist_updated'));
     }
 
     public function destroyUser($id)
     {
         OptionsWhitelist::findOrFail($id)->delete();
-        return redirect()->route('admin.whitelist')->with('success', 'Utilisateur supprimé.');
+        return redirect()->route('admin.whitelist')->with('success', __('messages.flash.whitelist_user_deleted'));
     }
 
     public function destroyRole($id)
     {
         OptionsWhitelistRole::findOrFail($id)->delete();
-        return redirect()->route('admin.whitelist')->with('success', 'Rôle supprimé.');
+        return redirect()->route('admin.whitelist')->with('success', __('messages.flash.whitelist_role_deleted'));
     }
 }

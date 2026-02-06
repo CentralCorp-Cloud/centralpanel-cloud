@@ -38,101 +38,97 @@
             </a>
             <ul class="sidebar-nav">
                 <li class="sidebar-header">
-                        Panel
+                        {{ __('messages.sidebar.panel') }}
                     </li>
                     <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.users') ? 'active' : '' }}" href="{{ route('admin.users') }}">
-                        <i class="bi bi-people align-middle"></i> <span class="align-middle">Users</span>
+                        <i class="bi bi-people align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.users') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.config') ? 'active' : '' }}" href="{{ route('admin.config') }}">
-                        <i class="bi bi-gear align-middle"></i> <span class="align-middle">Config</span>
+                        <i class="bi bi-gear align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.config') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.file-manager') ? 'active' : '' }}" href="{{ route('admin.file-manager') }}">
-                        <i class="bi bi-folder align-middle"></i> <span class="align-middle">File Manager</span>
+                        <i class="bi bi-folder align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.file_manager') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.update') ? 'active' : '' }}" href="{{ route('admin.update') }}">
-                        <i class="bi bi-sort-numeric-up-alt align-middle"></i> <span class="align-middle">Mise à Jour</span>
+                        <i class="bi bi-sort-numeric-up-alt align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.update') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-header">
-                    Configuration
+                    {{ __('messages.sidebar.configuration') }}
                 </li>
                 
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.general') ? 'active' : '' }}" href="{{ route('admin.general') }}">
-                        <i class="bi bi-sliders align-middle"></i> <span class="align-middle">General</span>
+                        <i class="bi bi-sliders align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.general') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.rpc') ? 'active' : '' }}" href="{{ route('admin.rpc') }}">
-                        <i class="bi bi-cpu align-middle"></i> <span class="align-middle">RPC</span>
+                        <i class="bi bi-cpu align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.rpc') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.server') ? 'active' : '' }}" href="{{ route('admin.server') }}">
-                        <i class="bi bi-hdd align-middle"></i> <span class="align-middle">Server</span>
+                        <i class="bi bi-hdd align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.server') }}</span>
                     </a>
                 </li>
 
                 <li class="sidebar-header">
-                    Sécurité
+                    {{ __('messages.sidebar.security_header') }}
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.security') ? 'active' : '' }}" href="{{ route('admin.security') }}">
-                        <i class="bi bi-lock align-middle"></i> <span class="align-middle">Security</span>
+                        <i class="bi bi-lock align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.security_link') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.whitelist') ? 'active' : '' }}" href="{{ route('admin.whitelist') }}">
-                        <i class="bi bi-list-check align-middle"></i> <span class="align-middle">Whitelist</span>
+                        <i class="bi bi-list-check align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.whitelist') }}</span>
                     </a>
                 </li>
                 
 
                 <li class="sidebar-header">
-                    Client
+                    {{ __('messages.sidebar.client') }}
                 </li>
                 
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.mods') ? 'active' : '' }}" href="{{ route('admin.mods') }}">
-                        <i class="bi bi-box align-middle"></i> <span class="align-middle">Mods optionnels</span>
+                        <i class="bi bi-box align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.optional_mods') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.loader') ? 'active' : '' }}" href="{{ route('admin.loader') }}">
-                        <i class="bi bi-cloud-arrow-down"></i> <span class="align-middle">Loader</span>
+                        <i class="bi bi-cloud-arrow-down"></i> <span class="align-middle">{{ __('messages.sidebar.loader') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.ignore') ? 'active' : '' }}" href="{{ route('admin.ignore') }}">
-                        <i class="bi bi-slash align-middle"></i> <span class="align-middle">Ignore</span>
+                        <i class="bi bi-slash align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.ignore') }}</span>
                     </a>
                 </li>
 
                 <li class="sidebar-header">
-                    Interface
+                    {{ __('messages.sidebar.interface') }}
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.ui') ? 'active' : '' }}" href="{{ route('admin.ui') }}">
-                        <i class="bi bi-display align-middle"></i> <span class="align-middle">UI</span>
+                        <i class="bi bi-display align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.ui') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->routeIs('admin.bg') ? 'active' : '' }}" href="{{ route('admin.bg') }}">
-                        <i class="bi bi-image align-middle"></i> <span class="align-middle">Background</span>
+                        <i class="bi bi-image align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.background') }}</span>
                     </a>
                 </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.theme.index') ? 'active' : '' }}" href="{{ route('admin.theme.index') }}">
-                        <i class="bi bi-image align-middle"></i> <span class="align-middle">Theme</span>
-                    </a>
-                </li>
+
             </ul>
 
         </div>
@@ -146,18 +142,27 @@
             <div class="d-none d-sm-inline-block" bis_skin_checked="1">
                 <a href="https://discord.gg/VCmNXHvf77" class="btn btn-outline-primary mx-1" target="_blank" rel="noopener noreferrer">
                     <i class="bi bi-discord"></i>
-                    Discord
+                    {{ __('messages.navbar.discord') }}
                 </a>
 
                 <a href="https://centralcorp.github.io/" class="btn btn-outline-secondary mx-1" target="_blank" rel="noopener noreferrer">
                     <i class="bi bi-journals"></i>
-                    Documentation
+                    {{ __('messages.navbar.documentation') }}
                 </a>
             </div>
             <div class="ms-auto d-flex align-items-center">
-                <button class="btn btn-outline-secondary" id="themeToggle" data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="Thème sombre" data-bs-original-title="Thème sombre">
+                <button class="btn btn-outline-secondary" id="themeToggle" data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="{{ __('messages.navbar.theme_dark') }}" data-bs-original-title="{{ __('messages.navbar.theme_dark') }}">
                     <i id="themeIcon" class="bi bi-moon-stars"></i>
                 </button>
+                <div class="dropdown ms-2">
+                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="langDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-translate"></i> {{ strtoupper(app()->getLocale()) }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
+                        <li><a class="dropdown-item" href="{{ route('lang.switch', 'fr') }}">Français</a></li>
+                        <li><a class="dropdown-item" href="{{ route('lang.switch', 'en') }}">English</a></li>
+                    </ul>
+                </div>
                 <div class="dropdown ms-2">
                     <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         {{ Auth::user()->name }}
@@ -167,7 +172,7 @@
                             <a class="dropdown-item" href="{{ route('logout') }}"
                                onclick="event.preventDefault();
                                              document.getElementById('logout-form').submit();">
-                                {{ __('Déconnexion') }}
+                                {{ __('messages.navbar.logout') }}
                             </a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                 @csrf
@@ -186,7 +191,7 @@
         </main>
         <footer class="bg-body-secondary py-4 mt-4">
                 <div class="text-center">
-                    <p class="mb-0">© 2025 CentralCorp. Tous droits réservés.</p>
+                    <p class="mb-0">{{ __('messages.dashboard.copy_rights') }}</p>
                 </div>
             </div>
         </footer>

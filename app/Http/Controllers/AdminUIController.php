@@ -43,6 +43,6 @@ class AdminUIController extends Controller
             $uiOptions->update($request->all());
         }
 
-        return redirect()->route('admin.ui')->with('success', 'Options UI mises à jour avec succès !');
+        return redirect()->route('admin.ui')->with('success', __('messages.flash.ui_updated'));
     }
 }

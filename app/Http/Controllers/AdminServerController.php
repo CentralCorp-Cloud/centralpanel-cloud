@@ -65,7 +65,7 @@ class AdminServerController extends Controller
         $options = OptionsGeneral::first();
         
         if (!$options || !$options->azuriom_url) {
-            return redirect()->route('admin.server')->with('error', 'Veuillez d\'abord configurer l\'URL Azuriom dans les paramètres généraux.');
+            return redirect()->route('admin.server')->with('error', __('messages.server.config_error'));
         }
 
         try {
@@ -114,10 +114,10 @@ class AdminServerController extends Controller
                 $isFirstServer = false;
             }
 
-            return redirect()->route('admin.server')->with('success', "{$syncedCount} serveur(s) synchronisé(s) avec succès !");
+            return redirect()->route('admin.server')->with('success', __('messages.flash.server_sync_success', ['count' => $syncedCount]));
 
         } catch (\RuntimeException $e) {
-            return redirect()->route('admin.server')->with('error', 'Erreur de synchronisation : ' . $e->getMessage());
+            return redirect()->route('admin.server')->with('error', __('messages.flash.server_sync_error') . ' ' . $e->getMessage());
         }
     }
 
@@ -148,7 +148,7 @@ class AdminServerController extends Controller
         // Mettre à jour les autres options du serveur
         $serverOptions->update($request->except('icon')); // Ignorer l'icône ici, car elle a déjà été mise à jour
 
-        return redirect()->route('admin.server')->with('success', 'Options Server mises à jour avec succès !');
+        return redirect()->route('admin.server')->with('success', __('messages.flash.server_updated'));
     }
 
     public function setDefaultServer(Request $request)
@@ -183,10 +183,10 @@ class AdminServerController extends Controller
                 'is_default' => $verification->is_default
             ]);
             
-            return redirect()->route('admin.server')->with('success', "Le serveur \"{$server->server_name}\" a été défini comme serveur par défaut.");
+            return redirect()->route('admin.server')->with('success', __('messages.flash.server_set_default', ['name' => $server->server_name]));
         }
 
         \Log::error('Serveur non trouvé', ['server_id' => $request->server_id]);
-        return redirect()->route('admin.server')->with('error', 'Serveur non trouvé.');
+        return redirect()->route('admin.server')->with('error', __('messages.flash.server_not_found'));
     }
 }

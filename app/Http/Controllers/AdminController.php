@@ -35,7 +35,7 @@ class AdminController extends Controller
             $options->update($request->all());
         }
 
-        return redirect()->route('admin.general')->with('success', 'Options mises à jour avec succès !');
+        return redirect()->route('admin.general')->with('success', __('messages.flash.options_updated'));
     }
 
     public function general()

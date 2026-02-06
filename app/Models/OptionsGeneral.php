@@ -21,9 +21,6 @@ class OptionsGeneral extends Model
         'money_display',
         'azuriom_url',
         'azuriom_api_key',
-        'market_api_key',
-        'active_theme_id',
-        'active_theme_version',
         'min_ram',
         'max_ram',
     ];

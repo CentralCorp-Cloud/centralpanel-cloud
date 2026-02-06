@@ -4,16 +4,16 @@
     use App\Models\OptionsServer;
 @endphp
 
-@section('title', 'Paramètres Server')
+@section('title', __('messages.server.title'))
 
 @section('content')
     <div class="container-fluid p-0">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold mb-0">Liste des serveurs Azuriom</h2>
+            <h2 class="fw-bold mb-0">{{ __('messages.server.list_title') }}</h2>
             <form method="POST" action="{{ route('admin.server.sync') }}" class="d-inline">
                 @csrf
                 <button type="submit" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-repeat me-1"></i> Synchroniser avec Azuriom
+                    <i class="bi bi-arrow-repeat me-1"></i> {{ __('messages.server.sync_btn') }}
                 </button>
             </form>
         </div>
@@ -22,7 +22,7 @@
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="bi bi-check-circle-fill me-2"></i>
                 {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('messages.common.close') }}"></button>
             </div>
         @endif
 
@@ -30,7 +30,7 @@
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('messages.common.close') }}"></button>
             </div>
         @endif
 
@@ -40,29 +40,29 @@
             </div>
         @elseif(!$options)
             <div class="alert alert-warning d-flex align-items-center">
-                <i class="fas fa-cogs me-2"></i> Veuillez d'abord configurer l'URL Azuriom dans les paramètres généraux.
+                <i class="fas fa-cogs me-2"></i> {{ __('messages.server.config_error') }}
             </div>
         @else
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white border-bottom">
-                    <h5 class="card-title mb-0">Serveurs synchronisés</h5>
+                    <h5 class="card-title mb-0">{{ __('messages.server.synced_servers') }}</h5>
                 </div>
                 <div class="card-body">
                     @if(empty($servers))
                         <div class="alert alert-info d-flex align-items-center">
-                            <i class="fas fa-info-circle me-2"></i> Aucun serveur n'a été trouvé.
+                            <i class="fas fa-info-circle me-2"></i> {{ __('messages.server.no_servers') }}
                         </div>
                     @else
                         <div class="table-responsive">
                             <table class="table table-bordered align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Nom</th>
-                                        <th>Adresse</th>
-                                        <th>Port</th>
-                                        <th>Type</th>
-                                        <th>Icône</th>
-                                        <th class="text-center" style="width: 150px;">Actions</th>
+                                        <th>{{ __('messages.server.name') }}</th>
+                                        <th>{{ __('messages.server.address') }}</th>
+                                        <th>{{ __('messages.server.port') }}</th>
+                                        <th>{{ __('messages.server.type') }}</th>
+                                        <th>{{ __('messages.server.icon') }}</th>
+                                        <th class="text-center" style="width: 150px;">{{ __('messages.common.actions') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -80,11 +80,11 @@
                                                         $iconUrl = rtrim($options->azuriom_url, '/') . '/storage/' . $iconPath;
                                                     @endphp
                                                     <img src="{{ $iconUrl }}" 
-                                                         alt="Icône du serveur" 
+                                                         alt="{{ __('messages.server.icon') }}" 
                                                          class="img-thumbnail rounded-circle" 
                                                          style="max-width: 40px; max-height: 40px;">
                                                 @else
-                                                    <span class="text-muted">Aucune</span>
+                                                    <span class="text-muted">{{ __('messages.common.none') }}</span>
                                                 @endif
                                             </td>
                                             <td class="text-center">
@@ -93,12 +93,12 @@
                                                         @csrf
                                                         <input type="hidden" name="server_id" value="{{ $server['id'] }}">
                                                         <button type="submit" class="btn btn-sm btn-primary">
-                                                            <i class="bi bi-star"></i> Définir par défaut
+                                                            <i class="bi bi-star"></i> {{ __('messages.server.set_default') }}
                                                         </button>
                                                     </form>
                                                 @else
                                                     <span class="text-success fw-bold">
-                                                        <i class="bi bi-check-circle-fill"></i> Serveur par défaut
+                                                        <i class="bi bi-check-circle-fill"></i> {{ __('messages.server.is_default') }}
                                                     </span>
                                                 @endif
                                             </td>
@@ -110,7 +110,7 @@
 
                         <div class="alert alert-info mt-3">
                             <i class="bi bi-info-circle me-2"></i>
-                            <strong>Information :</strong> Le serveur par défaut sera utilisé comme serveur principal pour toutes les connexions et opérations du launcher.
+                            <strong>{{ __('messages.server.default_info') }}</strong>
                         </div>
                     @endif
                 </div>
@@ -122,23 +122,20 @@
         @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                // Gestion des formulaires de définition de serveur par défaut
                 const forms = document.querySelectorAll('.set-default-form');
                 
                 forms.forEach(form => {
                     form.addEventListener('submit', function(e) {
                         const serverName = this.closest('tr').querySelector('td:nth-child(2)').textContent.trim();
                         
-                        // Confirmation simple
-                        if (!confirm(`Êtes-vous sûr de vouloir définir "${serverName}" comme serveur par défaut ?`)) {
+                        if (!confirm(`{{ __('messages.server.confirm_default') }}`)) {
                             e.preventDefault();
                             return false;
                         }
                         
-                        // Afficher un indicateur de chargement
                         const button = this.querySelector('button');
                         button.disabled = true;
-                        button.innerHTML = '<i class="bi bi-hourglass-split"></i> En cours...';
+                        button.innerHTML = '<i class="bi bi-hourglass-split"></i> {{ __('messages.server.processing') }}';
                     });
                 });
             });

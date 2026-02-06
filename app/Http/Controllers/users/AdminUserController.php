@@ -34,7 +34,7 @@ class AdminUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()->route('admin.users')->with('success', 'Utilisateur ajouté avec succès');
+        return redirect()->route('admin.users')->with('success', __('messages.flash.user_added'));
     }
 
     public function edit($id)
@@ -64,7 +64,7 @@ class AdminUserController extends Controller
 
         $user->update($userData);
 
-        return redirect()->route('admin.users')->with('success', 'Utilisateur mis à jour avec succès');
+        return redirect()->route('admin.users')->with('success', __('messages.flash.user_updated'));
     }
 
     public function delete($id)
@@ -72,6 +72,6 @@ class AdminUserController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
 
-        return redirect()->route('admin.users')->with('success', 'Utilisateur supprimé avec succès');
+        return redirect()->route('admin.users')->with('success', __('messages.flash.user_deleted'));
     }
 }

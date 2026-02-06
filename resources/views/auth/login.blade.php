@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr" data-bs-theme="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Connexion - {{ config('app.name', 'CentralCorp Panel') }}</title>
+    <title>{{ __('messages.auth.login') }} - {{ config('app.name', 'CentralCorp Panel') }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,7 +24,7 @@
     </style>
 </head>
 <body class="d-flex align-items-center justify-content-center py-4">
-    <button class="btn btn-outline-secondary theme-btn" onclick="toggleTheme()" title="Changer le thème">
+    <button class="btn btn-outline-secondary theme-btn" onclick="toggleTheme()" title="{{ __('messages.auth.change_theme') }}">
         <i class="bi bi-moon-stars" id="themeIcon"></i>
     </button>
 
@@ -38,14 +38,14 @@
                     </div>
                 </a>
                 <h1 class="h4 fw-bold mb-1">{{ config('app.name', 'CentralCorp Panel') }}</h1>
-                <p class="text-secondary small mb-0">Panel d'administration</p>
+                <p class="text-secondary small mb-0">{{ __('messages.auth.admin_panel') }}</p>
             </div>
             
             <!-- Login Card -->
             <div class="card border-secondary">
                 <div class="card-body p-4">
-                    <h2 class="h5 text-center mb-1">Connexion</h2>
-                    <p class="text-secondary small text-center mb-4">Connectez-vous pour accéder au panel</p>
+                    <h2 class="h5 text-center mb-1">{{ __('messages.auth.login_title') }}</h2>
+                    <p class="text-secondary small text-center mb-4">{{ __('messages.auth.login_subtitle') }}</p>
 
                     @if($errors->any())
                         <div class="alert alert-danger py-2 small">
@@ -60,7 +60,7 @@
                         @csrf
                         
                         <div class="mb-3">
-                            <label for="email" class="form-label small">Adresse email</label>
+                            <label for="email" class="form-label small">{{ __('messages.auth.email_address') }}</label>
                             <input type="email" 
                                    class="form-control @error('email') is-invalid @enderror" 
                                    id="email" 
@@ -73,7 +73,7 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="password" class="form-label small">Mot de passe</label>
+                            <label for="password" class="form-label small">{{ __('messages.auth.password') }}</label>
                             <input type="password" 
                                    class="form-control @error('password') is-invalid @enderror" 
                                    id="password" 
@@ -86,17 +86,17 @@
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                                <label class="form-check-label small" for="remember">Se souvenir</label>
+                                <label class="form-check-label small" for="remember">{{ __('messages.auth.remember_me') }}</label>
                             </div>
                             @if (Route::has('password.request'))
                                 <a class="small text-primary text-decoration-none" href="{{ route('password.request') }}">
-                                    Mot de passe oublié ?
+                                    {{ __('messages.auth.forgot_password') }}
                                 </a>
                             @endif
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Connexion
+                            <i class="bi bi-box-arrow-in-right me-2"></i>{{ __('messages.auth.login_btn') }}
                         </button>
                     </form>
                 </div>

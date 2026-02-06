@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Gestion de la Whitelist')
+@section('title', __('messages.whitelist.title'))
 
 @section('content')
     @if (session('success'))
@@ -12,7 +12,7 @@
     @endif
 
     <div class="container-fluid p-0">
-        <h2 class="text-3xl fw-bold mb-4">Gestion de la Whitelist</h2>
+        <h2 class="text-3xl fw-bold mb-4">{{ __('messages.whitelist.header') }}</h2>
 
         <!-- Activation de la whitelist -->
         <div class="card shadow-sm mb-4">
@@ -20,84 +20,84 @@
                 <form action="{{ route('admin.whitelist.store') }}" method="POST" id="whitelistForm">
                     @csrf
                     <fieldset class="border rounded p-3 mb-4">
-                        <legend class="w-auto px-2">Activation</legend>
+                        <legend class="w-auto px-2">{{ __('messages.whitelist.activation') }}</legend>
                         <div class="form-check form-switch">
                             <input type="hidden" name="whitelist" value="0">
                             <input type="checkbox" class="form-check-input" id="whitelist" name="whitelist" value="1"
                                    {{ ($securityOptions->whitelist ?? false) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="whitelist">Activer la whitelist</label>
+                            <label class="form-check-label" for="whitelist">{{ __('messages.whitelist.enable') }}</label>
                         </div>
                     </fieldset>
 
                     @if($hasAzuriomApi)
                         <!-- Section Utilisateurs Azuriom -->
                         <fieldset class="border rounded p-3 mb-4">
-                            <legend class="w-auto px-2">Utilisateurs Azuriom</legend>
+                            <legend class="w-auto px-2">{{ __('messages.whitelist.azuriom_users') }}</legend>
                             
                             <div class="d-flex gap-2 mb-3">
                                 <button type="button" class="btn btn-outline-primary" id="refreshUsersBtn">
-                                    <i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir la liste
+                                    <i class="bi bi-arrow-clockwise me-1"></i> {{ __('messages.common.refresh_list') }}
                                 </button>
                                 <span class="text-muted align-self-center" id="usersCacheInfo"></span>
                             </div>
 
                             <div class="mb-3">
                                 <input type="text" class="form-control" id="userSearchFilter" 
-                                       placeholder="🔍 Filtrer les utilisateurs..." disabled>
+                                       placeholder="🔍 {{ __('messages.whitelist.filter_users') }}" disabled>
                             </div>
 
                             <div id="usersListContainer" class="row" style="max-height: 400px; overflow-y: auto;">
                                 <div class="col-12 text-center text-muted py-4">
                                     <i class="bi bi-arrow-clockwise fs-1"></i>
-                                    <p>Cliquez sur "Rafraîchir la liste" pour charger les utilisateurs</p>
+                                    <p>{{ __('messages.whitelist.click_refresh') }}</p>
                                 </div>
                             </div>
                         </fieldset>
 
                         <!-- Section Rôles Azuriom -->
                         <fieldset class="border rounded p-3 mb-4">
-                            <legend class="w-auto px-2">Rôles Azuriom</legend>
+                            <legend class="w-auto px-2">{{ __('messages.whitelist.azuriom_roles') }}</legend>
                             
                             <div class="d-flex gap-2 mb-3">
                                 <button type="button" class="btn btn-outline-primary" id="refreshRolesBtn">
-                                    <i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir la liste
+                                    <i class="bi bi-arrow-clockwise me-1"></i> {{ __('messages.common.refresh_list') }}
                                 </button>
                                 <span class="text-muted align-self-center" id="rolesCacheInfo"></span>
                             </div>
 
                             <div class="mb-3">
                                 <input type="text" class="form-control" id="roleSearchFilter" 
-                                       placeholder="🔍 Filtrer les rôles..." disabled>
+                                       placeholder="🔍 {{ __('messages.whitelist.filter_roles') }}" disabled>
                             </div>
 
                             <div id="rolesListContainer" class="row" style="max-height: 300px; overflow-y: auto;">
                                 <div class="col-12 text-center text-muted py-4">
                                     <i class="bi bi-arrow-clockwise fs-1"></i>
-                                    <p>Cliquez sur "Rafraîchir la liste" pour charger les rôles</p>
+                                    <p>{{ __('messages.whitelist.click_refresh') }}</p>
                                 </div>
                             </div>
                         </fieldset>
                     @else
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle me-2"></i>
-                            L'API Azuriom n'est pas configurée. Configurez-la dans les paramètres généraux pour ajouter des utilisateurs et rôles.
+                            {{ __('messages.whitelist.api_not_configured') }}
                         </div>
                     @endif
 
                     <!-- Bouton de soumission -->
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">💾 Enregistrer</button>
+                        <button type="submit" class="btn btn-primary btn-lg">💾 {{ __('messages.common.save') }}</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- Liste des utilisateurs dans la Whitelist -->
-        <h3 class="mb-3">Utilisateurs dans la Whitelist</h3>
+        <h3 class="mb-3">{{ __('messages.whitelist.users_in_whitelist') }}</h3>
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 @if($users->isEmpty())
-                    <p class="text-muted">Aucun utilisateur actuellement whitelisté.</p>
+                    <p class="text-muted">{{ __('messages.whitelist.no_users') }}</p>
                 @else
                     <ul class="list-group" id="whitelistedUsersList">
                         @foreach($users as $user)
@@ -106,7 +106,7 @@
                                 <form action="{{ route('admin.whitelist.destroyUser', $user->id) }}" method="POST" class="ms-2">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                                    <button type="submit" class="btn btn-sm btn-danger">{{ __('messages.common.delete') }}</button>
                                 </form>
                             </li>
                         @endforeach
@@ -116,11 +116,11 @@
         </div>
 
         <!-- Liste des rôles dans la Whitelist -->
-        <h3 class="mb-3">Rôles dans la Whitelist</h3>
+        <h3 class="mb-3">{{ __('messages.whitelist.roles_in_whitelist') }}</h3>
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 @if($roles->isEmpty())
-                    <p class="text-muted">Aucun rôle actuellement whitelisté.</p>
+                    <p class="text-muted">{{ __('messages.whitelist.no_roles') }}</p>
                 @else
                     <ul class="list-group" id="whitelistedRolesList">
                         @foreach($roles as $role)
@@ -129,7 +129,7 @@
                                 <form action="{{ route('admin.whitelist.destroyRole', $role->id) }}" method="POST" class="ms-2">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                                    <button type="submit" class="btn btn-sm btn-danger">{{ __('messages.common.delete') }}</button>
                                 </form>
                             </li>
                         @endforeach
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         refreshUsersBtn.addEventListener('click', function() {
             refreshUsersBtn.disabled = true;
-            refreshUsersBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Chargement...';
+            refreshUsersBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> {{ __('messages.common.loading') }}';
             
             fetch('{{ route('admin.whitelist.fetchUsers') }}')
                 .then(res => res.json())
@@ -195,12 +195,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     userSearchFilter.disabled = false;
                 })
                 .catch(err => {
-                    console.error('Erreur:', err);
-                    usersListContainer.innerHTML = '<div class="col-12 text-danger">Erreur de chargement</div>';
+                    console.error('{{ __('messages.common.error') }}:', err);
+                    usersListContainer.innerHTML = '<div class="col-12 text-danger">{{ __('messages.common.error') }}</div>';
                 })
                 .finally(() => {
                     refreshUsersBtn.disabled = false;
-                    refreshUsersBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir la liste';
+                    refreshUsersBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> {{ __('messages.common.refresh_list') }}';
                 });
         });
 
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderUsers(users) {
         if (users.length === 0) {
-            usersListContainer.innerHTML = '<div class="col-12 text-muted">Aucun utilisateur disponible</div>';
+            usersListContainer.innerHTML = '<div class="col-12 text-muted">{{ __('messages.whitelist.no_users_available') }}</div>';
             return;
         }
         usersListContainer.innerHTML = users.map(user => `
@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         refreshRolesBtn.addEventListener('click', function() {
             refreshRolesBtn.disabled = true;
-            refreshRolesBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Chargement...';
+            refreshRolesBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> {{ __('messages.common.loading') }}';
             
             fetch('{{ route('admin.whitelist.fetchRoles') }}')
                 .then(res => res.json())
@@ -263,12 +263,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     roleSearchFilter.disabled = false;
                 })
                 .catch(err => {
-                    console.error('Erreur:', err);
-                    rolesListContainer.innerHTML = '<div class="col-12 text-danger">Erreur de chargement</div>';
+                    console.error('{{ __('messages.common.error') }}:', err);
+                    rolesListContainer.innerHTML = '<div class="col-12 text-danger">{{ __('messages.common.error') }}</div>';
                 })
                 .finally(() => {
                     refreshRolesBtn.disabled = false;
-                    refreshRolesBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir la liste';
+                    refreshRolesBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> {{ __('messages.common.refresh_list') }}';
                 });
         });
 
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderRoles(roles) {
         if (roles.length === 0) {
-            rolesListContainer.innerHTML = '<div class="col-12 text-muted">Aucun rôle disponible</div>';
+            rolesListContainer.innerHTML = '<div class="col-12 text-muted">{{ __('messages.whitelist.no_roles_available') }}</div>';
             return;
         }
         rolesListContainer.innerHTML = roles.map(role => `
@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             localStorage.setItem(key, JSON.stringify(data));
         } catch (e) {
-            console.warn('Impossible de sauvegarder le cache:', e);
+            console.warn('{{ __('messages.common.error') }}:', e);
         }
     }
 
@@ -326,11 +326,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const diff = Math.floor((now - date) / 1000 / 60);
         
         if (diff < 1) {
-            element.textContent = '(mis à jour à l\'instant)';
+            element.textContent = '{{ __('messages.whitelist.cache_just_now') }}';
         } else if (diff < 60) {
-            element.textContent = `(mis à jour il y a ${diff} min)`;
+            element.textContent = `({{ __('messages.whitelist.cache_updated') }} ${diff} min)`;
         } else {
-            element.textContent = `(mis à jour le ${date.toLocaleDateString()} à ${date.toLocaleTimeString()})`;
+            element.textContent = `({{ __('messages.whitelist.cache_updated') }} ${date.toLocaleDateString()} ${date.toLocaleTimeString()})`;
         }
     }
 

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Paramètres Security')
+@section('title', __('messages.security.title'))
 
 @section('content')
     @if(session('success'))
@@ -10,7 +10,7 @@
     @endif
 
     <div class="container-fluid p-0">
-        <h2 class="mb-4 fw-bold">Paramètres de sécurité</h2>
+        <h2 class="mb-4 fw-bold">{{ __('messages.security.header') }}</h2>
 
         <div class="card shadow-sm border-0">
             <div class="card-body">
@@ -22,22 +22,22 @@
                         <input type="checkbox" class="form-check-input" id="maintenance" name="maintenance" value="1" 
                                {{ $securityOptions->maintenance ? 'checked' : '' }}>
                         <label class="form-check-label ms-2" for="maintenance">
-                            Activer la maintenance 
+                            {{ __('messages.security.maintenance_enable') }}
                             <i class="fas fa-tools ms-1 text-muted"></i>
                             <br>
-                            <small class="text-muted">Le launcher ne sera plus accessible pour les utilisateurs.</small>
+                            <small class="text-muted">{{ __('messages.security.maintenance_desc') }}</small>
                         </label>
                     </div>
 
                     <div class="mb-3">
-                        <label for="maintenance_message" class="form-label fw-semibold">Message de maintenance</label>
+                        <label for="maintenance_message" class="form-label fw-semibold">{{ __('messages.security.maintenance_msg') }}</label>
                         <input type="text" class="form-control" id="maintenance_message" name="maintenance_message"
                                value="{{ $securityOptions->maintenance_message }}" required
-                               placeholder="Ex : Le launcher est temporairement indisponible...">
+                               placeholder="{{ __('messages.security.maintenance_placeholder') }}">
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-save me-1"></i> Mettre à jour
+                        <i class="fas fa-save me-1"></i> {{ __('messages.common.update') }}
                     </button>
                 </form>
             </div>

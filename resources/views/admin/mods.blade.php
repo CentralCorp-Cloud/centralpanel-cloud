@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Mods optionnels')
+@section('title', __('messages.mods.title'))
 
 @section('content')
 <div class="container-fluid px-0">
@@ -10,14 +10,14 @@
         </div>
     @endif
 
-    <h2 class="mb-4 fw-bold">Paramètres des Mods</h2>
+    <h2 class="mb-4 fw-bold">{{ __('messages.mods.header') }}</h2>
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="mb-4">
-                <label for="optionalMods" class="form-label">Sélectionnez un mod optionnel :</label>
+                <label for="optionalMods" class="form-label">{{ __('messages.mods.select_mod') }}</label>
                 <select id="optionalMods" name="selectedMod" class="form-select" onchange="handleSelectChange()">
-                    <option value="">-- Sélectionnez un mod --</option>
+                    <option value="">{{ __('messages.mods.select_placeholder') }}</option>
                     @foreach ($optionalMods as $mod)
                         <option value="{{ $mod->id }}" {{ old('selectedMod', $selectedModId) == $mod->id ? 'selected' : '' }}>
                             {{ $mod->name }}
@@ -27,7 +27,7 @@
             </div>
 
             <div id="modDetails" class="{{ $selectedModId ? '' : 'd-none' }}">
-                <h4 class="mb-3 fw-semibold">Détails du Mod</h4>
+                <h4 class="mb-3 fw-semibold">{{ __('messages.mods.mod_details') }}</h4>
 
                 <form method="POST" action="{{ route('admin.mods.updateOptional') }}" enctype="multipart/form-data" id="modForm" onsubmit="return validateForm()">
                     @csrf
@@ -35,43 +35,43 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Fichier du mod</label>
+                            <label class="form-label">{{ __('messages.mods.mod_file') }}</label>
                             <input type="text" id="mod_file" class="form-control" readonly>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Nom du Mod</label>
+                            <label class="form-label">{{ __('messages.mods.mod_name') }}</label>
                             <input type="text" name="optional_name" id="optional_name" class="form-control">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Description</label>
+                        <label class="form-label">{{ __('messages.mods.description') }}</label>
                         <textarea name="optional_description" id="optional_description" class="form-control" rows="3"></textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Image Actuelle</label><br>
+                        <label class="form-label">{{ __('messages.mods.current_image') }}</label><br>
                         <img id="current_image" src="" alt="" class="rounded d-none mb-2" style="height: 64px; width: 64px; object-fit: cover;">
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Nouvelle Image</label>
+                        <label class="form-label">{{ __('messages.mods.new_image') }}</label>
                         <input type="file" name="optional_image" accept="image/jpeg,image/png,image/gif" class="form-control">
                     </div>
 
                     <div class="form-check form-switch mb-3">
                         <input type="checkbox" name="optional_recommended" value="1" id="optional_recommended" class="form-check-input">
-                        <label class="form-check-label" for="optional_recommended">Recommandé</label>
+                        <label class="form-check-label" for="optional_recommended">{{ __('messages.mods.recommended') }}</label>
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-success">Modifier</button>
-                        <button type="button" id="deleteBtn" class="btn btn-outline-danger" onclick="deleteMod()">Supprimer</button>
+                        <button type="submit" class="btn btn-success">{{ __('messages.mods.modify') }}</button>
+                        <button type="button" id="deleteBtn" class="btn btn-outline-danger" onclick="deleteMod()">{{ __('messages.common.delete') }}</button>
                     </div>
                 </form>
             </div>
 
-            <h4 class="mt-5 mb-3 fw-semibold">Mods Disponibles</h4>
+            <h4 class="mt-5 mb-3 fw-semibold">{{ __('messages.mods.available_mods') }}</h4>
 
             <ul class="list-group">
                 @foreach ($modsData as $mod)
@@ -84,7 +84,7 @@
                                 <input type="hidden" name="name" value="{{ $mod['name'] }}">
                                 <input type="hidden" name="description" value="{{ $mod['description'] }}">
                                 <input type="hidden" name="icon" value="{{ $mod['icon'] }}">
-                                <button type="submit" class="btn btn-outline-primary btn-sm">Ajouter en tant que mod optionnel</button>
+                                <button type="submit" class="btn btn-outline-primary btn-sm">{{ __('messages.mods.add_optional') }}</button>
                             </form>
                         </li>
                     @endif
@@ -121,7 +121,7 @@
 
                     modDetails.classList.remove('d-none');
                 })
-                .catch(error => console.error('Erreur:', error));
+                .catch(error => console.error('{{ __('messages.common.error') }}:', error));
         } else {
             modIdInput.value = '';
             fileInput.value = '';
@@ -136,7 +136,7 @@
 
     function validateForm() {
         if (!optionalModsSelect.value) {
-            Swal.fire('Erreur', 'Veuillez sélectionner un mod à éditer.', 'error');
+            Swal.fire('{{ __('messages.common.error') }}', '{{ __('messages.mods.error_select_edit') }}', 'error');
             return false;
         }
         return true;
@@ -145,19 +145,19 @@
     function deleteMod() {
         const selectedModId = optionalModsSelect.value;
         if (!selectedModId) {
-            Swal.fire('Erreur', 'Veuillez sélectionner un mod à supprimer.', 'error');
+            Swal.fire('{{ __('messages.common.error') }}', '{{ __('messages.mods.error_select_delete') }}', 'error');
             return;
         }
 
         Swal.fire({
-            title: 'Êtes-vous sûr ?',
-            text: "Cette action est irréversible.",
+            title: '{{ __('messages.mods.confirm_delete') }}',
+            text: "{{ __('messages.mods.delete_warning') }}",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Oui, supprimer',
-            cancelButtonText: 'Annuler'
+            confirmButtonText: '{{ __('messages.mods.yes_delete') }}',
+            cancelButtonText: '{{ __('messages.common.cancel') }}'
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');

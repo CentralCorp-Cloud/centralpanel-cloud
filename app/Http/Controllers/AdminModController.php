@@ -47,7 +47,7 @@ class AdminModController extends Controller
 
         $mod->save();
 
-        return redirect()->back()->with('success', 'Mod optionnel mis à jour.');
+        return redirect()->back()->with('success', __('messages.flash.mod_updated'));
     }
     public function deleteOptionalMod($id)
     {
@@ -55,9 +55,9 @@ class AdminModController extends Controller
             $mod = OptionsMods::findOrFail($id);
             $mod->delete();
 
-            return redirect()->back()->with('success', 'Mod optionnel supprimé.');
+            return redirect()->back()->with('success', __('messages.flash.mod_deleted'));
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Erreur lors de la suppression du mod : ' . $e->getMessage());
+            return redirect()->back()->with('error', __('messages.flash.mod_delete_error') . ' ' . $e->getMessage());
         }
     }
 
@@ -70,13 +70,13 @@ class AdminModController extends Controller
         $mod->optional = 1;
         $mod->save();
 
-        return redirect()->back()->with('success', 'Mod ajouté en tant que mod optionnel.');
+        return redirect()->back()->with('success', __('messages.flash.mod_added'));
     }
     public function getOptionalModDetails($id)
     {
         $mod = OptionsMods::find($id);
         if (!$mod) {
-            return response()->json(['error' => 'Mod non trouvé'], 404);
+            return response()->json(['error' => __('messages.flash.mod_not_found')], 404);
         }
         return response()->json($mod);
     }

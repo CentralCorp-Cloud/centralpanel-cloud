@@ -47,7 +47,7 @@ class InstallController extends Controller
             // L'application est considérée comme installée si le fichier installed existe
             // ET que la clé n'est plus temporaire
             if ($isInstalled && $hasRealKey) {
-                return redirect('/')->with('error', 'Le système est déjà installé.');
+                return redirect('/')->with('error', __('messages.install.already_installed'));
             }
             
             // Si seulement une des conditions est vraie, il y a un état incohérent
@@ -350,9 +350,9 @@ class InstallController extends Controller
             $this->updateEnvValues(['APP_URL' => $correctUrl]);
             Config::set('app.url', $correctUrl);
 
-            return redirect()->route('install.finish')->with('success', 'Installation terminée avec succès !');
+            return redirect()->route('install.finish')->with('success', __('messages.install.install_success'));
         } catch (Throwable $t) {
-            return back()->withInput()->with('error', 'Une erreur est survenue lors de l\'installation: ' . $t->getMessage());
+            return back()->withInput()->with('error', __('messages.install.install_error') . ' ' . $t->getMessage());
         }
     }
 

@@ -1,17 +1,17 @@
 @extends('layouts.admin')
 
-@section('title', 'Gestion des Utilisateurs')
-@section('page-title', 'Gestion des Utilisateurs')
+@section('title', __('messages.users.title'))
+@section('page-title', __('messages.users.header'))
 @section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Liste des Utilisateurs</h3>
+                    <h3 class="card-title">{{ __('messages.users.list') }}</h3>
                     <div class="card-tools">
                         <a type="button" class="btn btn-primary" href="{{ route('admin.users.create') }}">
-                            Ajouter un utilisateur
+                            {{ __('messages.users.add_user') }}
                         </a>
                     </div>
                 </div>
@@ -25,10 +25,10 @@
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Nom</th>
-                                <th>Email</th>
-                                <th>Actions</th>
+                                <th>{{ __('messages.users.id') }}</th>
+                                <th>{{ __('messages.users.name') }}</th>
+                                <th>{{ __('messages.users.email') }}</th>
+                                <th>{{ __('messages.common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -39,13 +39,13 @@
                                 <td>{{ $user->email }}</td>
                                 <td>
                                     <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-info">
-                                        <i class="fas fa-edit"></i> Modifier
+                                        <i class="fas fa-edit"></i> {{ __('messages.common.edit') }}
                                     </a>
                                     <form action="{{ route('admin.users.delete', $user->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
-                                            <i class="fas fa-trash"></i> Supprimer
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ __('messages.users.confirm_delete_user') }}')">
+                                            <i class="fas fa-trash"></i> {{ __('messages.common.delete') }}
                                         </button>
                                     </form>
                                 </td>
@@ -59,5 +59,3 @@
     </div>
 </div>
 @endsection
-
-

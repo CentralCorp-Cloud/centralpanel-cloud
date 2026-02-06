@@ -30,12 +30,12 @@ class AdminIgnoreController extends Controller
             }
         }
 
-        return redirect()->route('admin.ignore')->with('success', 'Dossiers ignorés mis à jour avec succès.');
+        return redirect()->route('admin.ignore')->with('success', __('messages.flash.ignore_updated'));
     }
 
     public function destroyFolder($id)
     {
         OptionsIgnore::findOrFail($id)->delete();
-        return redirect()->route('admin.ignore')->with('success', 'Dossier/fichier supprimé.');
+        return redirect()->route('admin.ignore')->with('success', __('messages.flash.ignore_deleted'));
     }
 }

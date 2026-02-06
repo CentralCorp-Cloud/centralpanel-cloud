@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SettingsExportController;
-use App\Http\Controllers\Admin\ThemeController;
 use App\Http\Controllers\AdminBgController;
 use App\Http\Controllers\api\ApiController;
 use App\Http\Controllers\api\FileController;
@@ -36,13 +35,13 @@ Route::get('/install/finish', [InstallController::class, 'finish'])->name('insta
 Route::get('/', function () {
     $isInstalled = File::exists(storage_path('installed'));
     $hasRealKey = config('app.key') !== \App\Http\Controllers\InstallController::TEMP_KEY;
-    
+
     // L'application est installée seulement si les DEUX conditions sont vraies
     // Cela évite les boucles de redirection en cas d'état incohérent
     if (!$isInstalled || !$hasRealKey) {
         return redirect()->route('install.database');
     }
-    
+
     if (Auth::check()) {
         return redirect()->route('admin.index');
     }
@@ -106,11 +105,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
     Route::get('/bg', [AdminBgController::class, 'index'])->name('admin.bg');
     Route::post('/bg/update', [AdminBgController::class, 'update'])->name('admin.bg.update');
-
-    // Routes pour les thèmes marketplace
-    Route::get('/theme', [ThemeController::class, 'index'])->name('admin.theme.index');
-    Route::post('/theme/download/{id}', [ThemeController::class, 'download'])->name('admin.theme.download');
-    Route::get('/theme/purchase/{id}', [ThemeController::class, 'purchase'])->name('admin.theme.purchase');
+    Route::delete('/bg/destroy/{role_id}', [AdminBgController::class, 'destroy'])->name('admin.bg.destroy');
 
     Route::get('/update', [UpdateController::class, 'index'])->name('admin.update');
     Route::post('/update', [UpdateController::class, 'update'])->name('admin.update.run');
@@ -128,3 +123,5 @@ Route::prefix('utils')->group(function () {
     Route::get('/mods', [ModController::class, 'getMods']);
 });
 Route::get('/data', [FileController::class, 'getFiles']);
+
+Route::get('lang/{locale}', [App\Http\Controllers\LanguageController::class, 'switch'])->name('lang.switch');

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Options Générales')
-@section('page-title', 'Options Générales')
+@section('title', __('messages.general.title'))
+@section('page-title', __('messages.general.title'))
 
 @section('content')
     @if (session('success'))
@@ -14,7 +14,7 @@
 
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Des erreurs sont survenues :</strong>
+            <strong>{{ __('messages.common.errors_occurred') }}</strong>
             <ul class="mb-0 mt-2">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -30,16 +30,16 @@
                 @csrf
 
                 <fieldset class="border p-3 mb-4 rounded">
-                    <legend class="float-none w-auto px-2">Fonctionnalités</legend>
+                    <legend class="float-none w-auto px-2">{{ __('messages.general.features') }}</legend>
                     <div class="row row-cols-1 row-cols-md-2 g-3">
                         @php
                             $switches = [
-                                ['id' => 'mods_enabled', 'label' => 'Mods activés'],
-                                ['id' => 'file_verification', 'label' => 'Vérification des fichiers'],
-                                ['id' => 'embedded_java', 'label' => 'Java préembarquée'],
-                                ['id' => 'email_verified', 'label' => 'Email vérifiée obligatoire'],
-                                ['id' => 'role_display', 'label' => 'Afficher le rôle'],
-                                ['id' => 'money_display', 'label' => 'Afficher les points'],
+                                ['id' => 'mods_enabled', 'label' => __('messages.general.mods_enabled')],
+                                ['id' => 'file_verification', 'label' => __('messages.general.file_verification')],
+                                ['id' => 'embedded_java', 'label' => __('messages.general.embedded_java')],
+                                ['id' => 'email_verified', 'label' => __('messages.general.email_verified')],
+                                ['id' => 'role_display', 'label' => __('messages.general.role_display')],
+                                ['id' => 'money_display', 'label' => __('messages.general.money_display')],
                             ];
                         @endphp
 
@@ -61,10 +61,10 @@
                 </fieldset>
 
                 <fieldset class="border p-3 mb-4 rounded">
-                    <legend class="float-none w-auto px-2">Paramètres techniques</legend>
+                    <legend class="float-none w-auto px-2">{{ __('messages.general.technical_settings') }}</legend>
 
                     <div class="mb-3">
-                        <label for="game_folder_name" class="form-label">Nom du dossier de jeu</label>
+                        <label for="game_folder_name" class="form-label">{{ __('messages.general.game_folder_name') }}</label>
                         <input type="text"
                                class="form-control"
                                id="game_folder_name"
@@ -75,7 +75,7 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="default_min_ram" class="form-label">RAM minimum (MB)</label>
+                            <label for="default_min_ram" class="form-label">{{ __('messages.general.min_ram') }}</label>
                             <input type="number"
                                    class="form-control"
                                    id="default_min_ram"
@@ -87,7 +87,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="default_max_ram" class="form-label">RAM maximum (MB)</label>
+                            <label for="default_max_ram" class="form-label">{{ __('messages.general.max_ram') }}</label>
                             <input type="number"
                                    class="form-control"
                                    id="default_max_ram"
@@ -101,7 +101,7 @@
                 </fieldset>
 
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg">💾 Mettre à jour</button>
+                    <button type="submit" class="btn btn-primary btn-lg">💾 {{ __('messages.common.update') }}</button>
                 </div>
             </form>
         </div>

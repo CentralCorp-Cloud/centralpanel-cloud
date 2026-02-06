@@ -29,12 +29,12 @@ class UpdateController extends Controller
         try {
             $updated = $manager->updateIfAvailable();
             if ($updated) {
-                return redirect()->back()->with('success', 'Mise à jour installée avec succès.');
+                return redirect()->back()->with('success', __('messages.flash.update_success'));
             } else {
-                return redirect()->back()->with('info', 'Aucune mise à jour disponible.');
+                return redirect()->back()->with('info', __('messages.flash.update_none'));
             }
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Erreur lors de la mise à jour : ' . $e->getMessage());
+            return redirect()->back()->with('error', __('messages.flash.update_error') . ' ' . $e->getMessage());
         }
     }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Ajouter un utilisateur')
+@section('title', __('messages.users.add_user'))
 
 @section('content')
 <div class="container-fluid">
@@ -8,7 +8,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Ajouter un utilisateur</h3>
+                    <h3 class="card-title">{{ __('messages.users.add_user') }}</h3>
                 </div>
                 <div class="card-body">
                     @if(session('success'))
@@ -21,7 +21,7 @@
                         @csrf
                         
                         <div class="form-group">
-                            <label for="name">Nom</label>
+                            <label for="name">{{ __('messages.users.name') }}</label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" 
                                    id="name" name="name" value="{{ old('name') }}" required>
                             @error('name')
@@ -30,7 +30,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="email">Email</label>
+                            <label for="email">{{ __('messages.users.email') }}</label>
                             <input type="email" class="form-control @error('email') is-invalid @enderror" 
                                    id="email" name="email" value="{{ old('email') }}" required>
                             @error('email')
@@ -39,7 +39,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="password">Mot de passe</label>
+                            <label for="password">{{ __('messages.users.password') }}</label>
                             <input type="password" class="form-control @error('password') is-invalid @enderror" 
                                    id="password" name="password" required>
                             @error('password')
@@ -48,14 +48,14 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="password_confirmation">Confirmer le mot de passe</label>
+                            <label for="password_confirmation">{{ __('messages.users.password_confirm') }}</label>
                             <input type="password" class="form-control" 
                                    id="password_confirmation" name="password_confirmation" required>
                         </div>
 
                         <div class="form-group">
-                            <button type="submit" class="btn btn-primary">Ajouter</button>
-                            <a href="{{ route('admin.users') }}" class="btn btn-secondary">Retour</a>
+                            <button type="submit" class="btn btn-primary">{{ __('messages.common.add') }}</button>
+                            <a href="{{ route('admin.users') }}" class="btn btn-secondary">{{ __('messages.common.back') }}</a>
                         </div>
                     </form>
                 </div>
@@ -63,4 +63,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

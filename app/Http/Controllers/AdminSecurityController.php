@@ -32,6 +32,6 @@ class AdminSecurityController extends Controller
             $SecurityOptions->update($request->all());
         }
 
-        return redirect()->route('admin.security')->with('success', 'Options Security mises à jour avec succès !');
+        return redirect()->route('admin.security')->with('success', __('messages.flash.security_updated'));
     }
 }

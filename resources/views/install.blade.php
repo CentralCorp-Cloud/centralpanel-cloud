@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Installation - CentralCorp Panel</title>
+    <title>{{ __('messages.install.title') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -99,8 +99,8 @@
         <div class="install-container">
             <div class="install-header">
                 <i class="fas fa-cogs"></i>
-                <h2 class="mb-3">Installation de CentralCorp Panel</h2>
-                <p class="text-muted">Configurez votre panneau d'administration</p>
+                <h2 class="mb-3">{{ __('messages.install.header') }}</h2>
+                <p class="text-muted">{{ __('messages.install.subtitle') }}</p>
             </div>
 
             @if(session('error'))
@@ -113,23 +113,23 @@
             <form method="POST" action="{{ route('install.process') }}" id="installForm">
                 @csrf
                 <div class="mb-4">
-                    <label for="name" class="form-label">Nom d'administrateur</label>
+                    <label for="name" class="form-label">{{ __('messages.install.admin_name') }}</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        <input type="text" class="form-control" id="name" name="name" required placeholder="Votre nom">
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="{{ __('messages.install.admin_name_placeholder') }}">
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label">{{ __('messages.install.email') }}</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                        <input type="email" class="form-control" id="email" name="email" required placeholder="votre@email.com">
+                        <input type="email" class="form-control" id="email" name="email" required placeholder="{{ __('messages.install.email_placeholder') }}">
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label for="password" class="form-label">Mot de passe</label>
+                    <label for="password" class="form-label">{{ __('messages.install.password') }}</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-lock"></i></span>
                         <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
@@ -140,7 +140,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="password_confirmation" class="form-label">Confirmation du mot de passe</label>
+                    <label for="password_confirmation" class="form-label">{{ __('messages.install.password_confirm') }}</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-lock"></i></span>
                         <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required placeholder="••••••••">
@@ -153,7 +153,7 @@
                 <div class="d-grid">
                     <button type="button" class="btn btn-install" data-bs-toggle="modal" data-bs-target="#confirmationModal">
                         <i class="fas fa-rocket me-2"></i>
-                        Démarrer l'installation
+                        {{ __('messages.install.start_install') }}
                     </button>
                 </div>
             </form>
@@ -167,19 +167,19 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="confirmationModalLabel">
                         <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                        Confirmation requise
+                        {{ __('messages.install.confirm_title') }}
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('messages.common.close') }}"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Êtes-vous sûr de vouloir procéder à l'installation ?</p>
-                    <p class="text-muted small">Cette action est irréversible et configurera votre panneau d'administration.</p>
+                    <p>{{ __('messages.install.confirm_question') }}</p>
+                    <p class="text-muted small">{{ __('messages.install.confirm_warning') }}</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('messages.common.cancel') }}</button>
                     <button type="submit" class="btn btn-install" form="installForm">
                         <i class="fas fa-check me-2"></i>
-                        Confirmer l'installation
+                        {{ __('messages.install.confirm_btn') }}
                     </button>
                 </div>
             </div>
@@ -210,9 +210,9 @@
             
             if (password !== confirmPassword) {
                 e.preventDefault();
-                alert('Les mots de passe ne correspondent pas !');
+                alert('{{ __('messages.install.passwords_mismatch') }}');
             }
         });
     </script>
 </body>
-</html> 
+</html>

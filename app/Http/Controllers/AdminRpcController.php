@@ -49,6 +49,6 @@ class AdminRpcController extends Controller
             $rpcOptions->update($request->all());
         }
 
-        return redirect()->route('admin.rpc')->with('success', 'Options RPC mises à jour avec succès !');
+        return redirect()->route('admin.rpc')->with('success', __('messages.flash.rpc_updated'));
     }
 }
