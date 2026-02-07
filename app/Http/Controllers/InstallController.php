@@ -23,8 +23,18 @@ class InstallController extends Controller
     public const MIN_PHP_VERSION = '8.1';
 
     public const REQUIRED_EXTENSIONS = [
-        'bcmath', 'ctype', 'json', 'mbstring', 'openssl', 'PDO', 'tokenizer',
-        'xml', 'xmlwriter', 'curl', 'fileinfo', 'zip',
+        'bcmath',
+        'ctype',
+        'json',
+        'mbstring',
+        'openssl',
+        'PDO',
+        'tokenizer',
+        'xml',
+        'xmlwriter',
+        'curl',
+        'fileinfo',
+        'zip',
     ];
 
     protected array $databaseDrivers = [
@@ -38,18 +48,18 @@ class InstallController extends Controller
     public function __construct()
     {
         $this->requirements = static::getRequirements();
-        $this->hasRequirements = ! in_array(false, $this->requirements, true);
+        $this->hasRequirements = !in_array(false, $this->requirements, true);
 
         $this->middleware(function (Request $request, callable $next) {
             $isInstalled = File::exists(storage_path('installed'));
             $hasRealKey = config('app.key') !== self::TEMP_KEY;
-            
+
             // L'application est considérée comme installée si le fichier installed existe
             // ET que la clé n'est plus temporaire
             if ($isInstalled && $hasRealKey) {
                 return redirect('/')->with('error', __('messages.install.already_installed'));
             }
-            
+
             // Si seulement une des conditions est vraie, il y a un état incohérent
             // On permet l'accès aux routes d'installation pour corriger
             // (ex: fichier installed existe mais clé temporaire, ou vice versa)
@@ -62,22 +72,22 @@ class InstallController extends Controller
     {
         // Utiliser l'URL de la requête actuelle pour déterminer le bon domaine
         $request = request();
-        
+
         if ($request) {
             $scheme = $request->isSecure() ? 'https' : 'http';
             $host = $request->getHost();
             $port = $request->getPort();
-            
+
             $url = $scheme . '://' . $host;
-            
+
             // Ajouter le port seulement s'il n'est pas standard
             if (($scheme === 'http' && $port !== 80) || ($scheme === 'https' && $port !== 443)) {
                 $url .= ':' . $port;
             }
-            
+
             return $url;
         }
-        
+
         // Fallback
         return url('/');
     }
@@ -169,7 +179,7 @@ class InstallController extends Controller
         foreach ($values as $key => $value) {
             $pattern = "/^{$key}=.*/m";
             $replacement = "{$key}={$value}";
-            
+
             if (preg_match($pattern, $envContent)) {
                 $envContent = preg_replace($pattern, $replacement, $envContent);
             } else {
@@ -245,14 +255,14 @@ class InstallController extends Controller
             ]);
 
             $this->prepareEnvironment();
-            
+
             // Step 1: Configure database
             $databaseType = $request->input('type');
 
             if ($databaseType === 'sqlite') {
                 // Create SQLite database file
                 $this->ensureDatabaseExists();
-                
+
                 // Update .env for SQLite
                 $this->updateEnvValues([
                     'DB_CONNECTION' => 'sqlite',
@@ -262,7 +272,7 @@ class InstallController extends Controller
                     'DB_USERNAME' => '',
                     'DB_PASSWORD' => '',
                 ]);
-                
+
                 // Configure and test SQLite connection
                 DB::purge('sqlite');
                 Config::set('database.connections.sqlite.database', database_path('database.sqlite'));
@@ -331,10 +341,14 @@ class InstallController extends Controller
 
             // Step 4: Post-installation setup
             Artisan::call('storage:link');
-            
+
             File::put(storage_path('installed'), 'Installation complétée le ' . now()->format('Y-m-d H:i:s') . "\nAdmin: " . $user->email);
-            
+
             $this->generateAppKey();
+
+            $correctUrl = $this->getCorrectAppUrl();
+            $this->updateEnvValues(['APP_URL' => $correctUrl]);
+            Config::set('app.url', $correctUrl);
 
             try {
                 Artisan::call('cache:clear');
@@ -345,10 +359,6 @@ class InstallController extends Controller
             Artisan::call('config:cache');
             Artisan::call('route:cache');
             Artisan::call('view:cache');
-
-            $correctUrl = $this->getCorrectAppUrl();
-            $this->updateEnvValues(['APP_URL' => $correctUrl]);
-            Config::set('app.url', $correctUrl);
 
             return redirect()->route('install.finish')->with('success', __('messages.install.install_success'));
         } catch (Throwable $t) {
@@ -372,11 +382,11 @@ class InstallController extends Controller
     private function generateAppKey()
     {
         $key = 'base64:' . base64_encode(Encrypter::generateKey(config('app.cipher')));
-        
+
         $this->updateEnvValues([
             'APP_KEY' => $key,
         ]);
-        
+
         // Recharger la configuration
         Config::set('app.key', $key);
     }
