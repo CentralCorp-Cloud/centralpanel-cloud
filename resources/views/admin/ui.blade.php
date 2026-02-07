@@ -72,6 +72,14 @@
                     </div>
                 </fieldset>
 
+                <fieldset class="mb-4">
+                    <legend class="fs-5 fw-bold mb-3">{{ __('messages.ui.color') }}</legend>
+                    <div class="mb-3">
+                        <label for="accent_color" class="form-label">{{ __('messages.ui.accent_color') }}</label>
+                        <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color" value="{{ $uiOptions->accent_color ?? '#FFA500' }}" required>
+                    </div>
+                </fieldset>
+
                 <button type="submit" class="btn btn-primary">{{ __('messages.common.update') }}</button>
             </form>
         </div>

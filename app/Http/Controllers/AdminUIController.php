@@ -19,6 +19,7 @@ class AdminUIController extends Controller
                 'video_url'=>'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                 'splash'=>'Ceci est du code',
                 'splash_author'=>'Riptiaz',
+                'accent_color'=>'#FFA500',
             ]);
         }
 
@@ -35,6 +36,7 @@ class AdminUIController extends Controller
             'video_url'=>'required|string|max:255',
             'splash'=>'required|string|max:255',
             'splash_author'=>'required|string|max:255',
+            'accent_color'=>'required|string|max:7',
         ]);
 
         $uiOptions = OptionsUI::first();

@@ -18,5 +18,6 @@ class OptionsUI extends Model
         'video_url',
         'splash',
         'splash_author',
+        'accent_color',
     ];
 }

@@ -143,6 +143,7 @@ return [
         'splash_section' => 'Launch Splash',
         'splash_msg' => 'Splash Message',
         'splash_author' => 'Message Author',
+        'color' => 'Color of the launcher',
     ],
     'config' => [
         'title' => 'Configuration',
