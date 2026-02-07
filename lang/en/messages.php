@@ -144,6 +144,7 @@ return [
         'splash_msg' => 'Splash Message',
         'splash_author' => 'Message Author',
         'color' => 'Color of the launcher',
+        'accent_color' => 'Accent color',
     ],
     'config' => [
         'title' => 'Configuration',
