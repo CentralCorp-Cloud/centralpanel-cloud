@@ -68,7 +68,7 @@
             <!-- Header -->
             <div class="text-center mb-4">
                 <a href="{{ url('/') }}">
-                    <img src="https://centralcorp.github.io/assets/img/panel.png"
+                    <img src="https://centralcorp.github.io/img/panel.png"
                         style="width: 100%; max-width: 250px; height: auto">
                 </a>
                 <h1 class="h4 fw-bold mb-1">{{ config('app.name', 'CentralCorp Panel') }}</h1>

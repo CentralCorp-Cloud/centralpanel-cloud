@@ -54,7 +54,7 @@
         <div class="install-card mx-auto">
             <!-- Header -->
             <div class="text-center mb-4">
-                <img src="https://centralcorp.github.io/assets/img/panel.png"
+                <img src="https://centralcorp.github.io/img/panel.png"
                     style="width: 100%; max-width: 250px; height: auto">
                 <p class="text-secondary small mb-0">Assistant d'installation</p>
             </div>
