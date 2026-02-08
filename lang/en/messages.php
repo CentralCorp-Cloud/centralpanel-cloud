@@ -99,6 +99,10 @@ return [
         'port' => 'Port',
         'type' => 'Type',
         'icon' => 'Icon',
+        'icon_local' => 'Local icon',
+        'upload_icon' => 'Upload icon',
+        'delete_icon' => 'Delete local icon',
+        'confirm_delete_icon' => 'Are you sure you want to delete this local icon?',
         'set_default' => 'Set as Default',
         'is_default' => 'Default Server',
         'default_info' => 'Information: The default server will be used as the main server for all launcher connections.',
@@ -321,6 +325,8 @@ return [
         'server_sync_error' => 'Synchronization error:',
         'server_set_default' => 'Server ":name" has been set as the default server.',
         'server_not_found' => 'Server not found.',
+        'server_icon_updated' => 'Server ":name" icon has been updated.',
+        'server_icon_deleted' => 'Server ":name" local icon has been deleted.',
         // Loader
         'loader_updated' => 'Loader settings updated.',
         // Mods

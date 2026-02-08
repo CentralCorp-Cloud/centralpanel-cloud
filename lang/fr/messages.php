@@ -99,6 +99,10 @@ return [
         'port' => 'Port',
         'type' => 'Type',
         'icon' => 'Icône',
+        'icon_local' => 'Icône locale',
+        'upload_icon' => 'Uploader une icône',
+        'delete_icon' => 'Supprimer l\'icône locale',
+        'confirm_delete_icon' => 'Êtes-vous sûr de vouloir supprimer cette icône locale ?',
         'set_default' => 'Définir par défaut',
         'is_default' => 'Serveur par défaut',
         'default_info' => 'Information : Le serveur par défaut sera utilisé comme serveur principal pour toutes les connexions du launcher.',
@@ -321,6 +325,8 @@ return [
         'server_sync_error' => 'Erreur de synchronisation :',
         'server_set_default' => 'Le serveur ":name" a été défini comme serveur par défaut.',
         'server_not_found' => 'Serveur non trouvé.',
+        'server_icon_updated' => 'L\'icône du serveur ":name" a été mise à jour.',
+        'server_icon_deleted' => 'L\'icône locale du serveur ":name" a été supprimée.',
         // Loader
         'loader_updated' => 'Paramètres du loader mis à jour.',
         // Mods

@@ -64,6 +64,8 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::post('/server/update', [AdminServerController::class, 'update'])->name('admin.server.update');
     Route::post('/server/set-default', [AdminServerController::class, 'setDefaultServer'])->name('admin.server.set-default');
     Route::post('/server/sync', [AdminServerController::class, 'sync'])->name('admin.server.sync');
+    Route::post('/server/{serverId}/icon', [AdminServerController::class, 'updateIcon'])->name('admin.server.updateIcon');
+    Route::delete('/server/{serverId}/icon', [AdminServerController::class, 'deleteIcon'])->name('admin.server.deleteIcon');
 
     Route::get('/ui', [AdminUIController::class, 'show'])->name('admin.ui');
     Route::post('/ui/update', [AdminUIController::class, 'update'])->name('admin.ui.update');

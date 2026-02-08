@@ -73,19 +73,41 @@
                                             <td>{{ $server['port'] }}</td>
                                             <td><span class="badge bg-info">{{ $server['type'] }}</span></td>
                                             <td>
-                                                @if($server['icon'])
-                                                    @php
-                                                        $iconPath = $server['icon'];
-                                                        $iconPath = ltrim(str_replace('storage/', '', $iconPath), '/');
-                                                        $iconUrl = rtrim($options->azuriom_url, '/') . '/storage/' . $iconPath;
-                                                    @endphp
-                                                    <img src="{{ $iconUrl }}" 
-                                                         alt="{{ __('messages.server.icon') }}" 
-                                                         class="img-thumbnail rounded-circle" 
-                                                         style="max-width: 40px; max-height: 40px;">
-                                                @else
-                                                    <span class="text-muted">{{ __('messages.common.none') }}</span>
-                                                @endif
+                                                <div class="d-flex align-items-center gap-2">
+                                                    @if($server['icon_url'])
+                                                        <img src="{{ $server['icon_url'] }}"
+                                                             alt="{{ __('messages.server.icon') }}"
+                                                             class="img-thumbnail rounded-circle"
+                                                             style="max-width: 40px; max-height: 40px;">
+                                                        @if($server['icon_local'])
+                                                            <span class="badge bg-success" title="{{ __('messages.server.icon_local') }}">
+                                                                <i class="bi bi-hdd"></i>
+                                                            </span>
+                                                        @endif
+                                                    @else
+                                                        <span class="text-muted">{{ __('messages.common.none') }}</span>
+                                                    @endif
+
+                                                    {{-- Upload icon form --}}
+                                                    <form action="{{ route('admin.server.updateIcon', $server['id']) }}" method="POST" enctype="multipart/form-data" class="d-inline">
+                                                        @csrf
+                                                        <label class="btn btn-sm btn-outline-secondary" title="{{ __('messages.server.upload_icon') }}">
+                                                            <i class="bi bi-upload"></i>
+                                                            <input type="file" name="icon" class="d-none" accept="image/*" onchange="this.form.submit()">
+                                                        </label>
+                                                    </form>
+
+                                                    {{-- Delete local icon form --}}
+                                                    @if($server['icon_local'])
+                                                        <form action="{{ route('admin.server.deleteIcon', $server['id']) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ __('messages.server.delete_icon') }}" onclick="return confirm('{{ __('messages.server.confirm_delete_icon') }}')">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                </div>
                                             </td>
                                             <td class="text-center">
                                                 @if(!($defaultServers[$server['id']] ?? false))
@@ -123,16 +145,16 @@
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const forms = document.querySelectorAll('.set-default-form');
-                
+
                 forms.forEach(form => {
                     form.addEventListener('submit', function(e) {
                         const serverName = this.closest('tr').querySelector('td:nth-child(2)').textContent.trim();
-                        
+
                         if (!confirm(`{{ __('messages.server.confirm_default') }}`)) {
                             e.preventDefault();
                             return false;
                         }
-                        
+
                         const button = this.querySelector('button');
                         button.disabled = true;
                         button.innerHTML = '<i class="bi bi-hourglass-split"></i> {{ __('messages.server.processing') }}';

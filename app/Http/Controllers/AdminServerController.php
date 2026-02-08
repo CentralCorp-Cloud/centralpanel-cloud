@@ -30,7 +30,7 @@ class AdminServerController extends Controller
 
         // Charger les serveurs depuis la BDD uniquement (pas d'appel API)
         $servers = OptionsServer::all();
-        
+
         // Construire le tableau des serveurs par défaut
         $defaultServers = [];
         foreach ($servers as $server) {
@@ -46,6 +46,8 @@ class AdminServerController extends Controller
                 'port' => $server->server_port,
                 'type' => $server->type ?? 'minecraft',
                 'icon' => $server->icon,
+                'icon_local' => $server->icon_local,
+                'icon_url' => $server->icon_url,
             ];
         })->toArray();
 
@@ -63,7 +65,7 @@ class AdminServerController extends Controller
     public function sync()
     {
         $options = OptionsGeneral::first();
-        
+
         if (!$options || !$options->azuriom_url) {
             return redirect()->route('admin.server')->with('error', __('messages.server.config_error'));
         }
@@ -82,7 +84,7 @@ class AdminServerController extends Controller
             $syncedCount = 0;
             $isFirstServer = true;
             $hasDefaultServer = OptionsServer::where('is_default', true)->exists();
-            
+
             foreach ($servers as $server) {
                 // Nettoyer le chemin de l'icône (enlever /storage/ au début si présent)
                 $iconPath = $server['icon'] ?? null;
@@ -92,7 +94,7 @@ class AdminServerController extends Controller
                         $iconPath = substr($iconPath, 8); // Enlever "storage/"
                     }
                 }
-                
+
                 $serverModel = OptionsServer::updateOrCreate(
                     ['server_id' => $server['id']],
                     [
@@ -168,25 +170,73 @@ class AdminServerController extends Controller
         if ($server) {
             $server->is_default = true;
             $saved = $server->save();
-            
+
             \Log::info('Serveur par défaut mis à jour', [
-                'server_id' => $request->server_id, 
+                'server_id' => $request->server_id,
                 'server_name' => $server->server_name,
                 'saved' => $saved,
                 'is_default' => $server->is_default
             ]);
-            
+
             // Vérification supplémentaire
             $verification = OptionsServer::where('server_id', $request->server_id)->first();
             \Log::info('Vérification après sauvegarde', [
                 'server_id' => $verification->server_id,
                 'is_default' => $verification->is_default
             ]);
-            
+
             return redirect()->route('admin.server')->with('success', __('messages.flash.server_set_default', ['name' => $server->server_name]));
         }
 
         \Log::error('Serveur non trouvé', ['server_id' => $request->server_id]);
         return redirect()->route('admin.server')->with('error', __('messages.flash.server_not_found'));
+    }
+
+    /**
+     * Met à jour l'icône d'un serveur spécifique
+     */
+    public function updateIcon(Request $request, $serverId)
+    {
+        $request->validate([
+            'icon' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        $server = OptionsServer::where('server_id', $serverId)->first();
+
+        if (!$server) {
+            return redirect()->route('admin.server')->with('error', __('messages.flash.server_not_found'));
+        }
+
+        // Supprimer l'ancienne icône locale si elle existe
+        if ($server->icon_local) {
+            \Storage::disk('public')->delete($server->icon_local);
+        }
+
+        // Enregistrer la nouvelle icône
+        $path = $request->file('icon')->store('server_icons', 'public');
+        $server->icon_local = $path;
+        $server->save();
+
+        return redirect()->route('admin.server')->with('success', __('messages.flash.server_icon_updated', ['name' => $server->server_name]));
+    }
+
+    /**
+     * Supprime l'icône locale d'un serveur
+     */
+    public function deleteIcon($serverId)
+    {
+        $server = OptionsServer::where('server_id', $serverId)->first();
+
+        if (!$server) {
+            return redirect()->route('admin.server')->with('error', __('messages.flash.server_not_found'));
+        }
+
+        if ($server->icon_local) {
+            \Storage::disk('public')->delete($server->icon_local);
+            $server->icon_local = null;
+            $server->save();
+        }
+
+        return redirect()->route('admin.server')->with('success', __('messages.flash.server_icon_deleted', ['name' => $server->server_name]));
     }
 }

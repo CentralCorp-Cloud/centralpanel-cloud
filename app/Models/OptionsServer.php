@@ -16,6 +16,7 @@ class OptionsServer extends Model
         'server_ip',
         'server_port',
         'icon',
+        'icon_local',
         'type',
         'is_default'
     ];
@@ -23,4 +24,23 @@ class OptionsServer extends Model
     protected $casts = [
         'is_default' => 'boolean'
     ];
+
+    /**
+     * Retourne l'URL de l'icône (locale prioritaire sur distante)
+     */
+    public function getIconUrlAttribute(): ?string
+    {
+        if ($this->icon_local) {
+            return asset('storage/' . $this->icon_local);
+        }
+
+        if ($this->icon) {
+            $options = OptionsGeneral::first();
+            if ($options && $options->azuriom_url) {
+                return rtrim($options->azuriom_url, '/') . '/storage/' . ltrim(str_replace('storage/', '', $this->icon), '/');
+            }
+        }
+
+        return null;
+    }
 }
