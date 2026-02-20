@@ -125,5 +125,6 @@ Route::prefix('utils')->group(function () {
     Route::get('/mods', [ModController::class, 'getMods']);
 });
 Route::get('/data', [FileController::class, 'getFiles']);
+Route::get('/archive-manifest', [FileController::class, 'getArchiveManifest']);
 
 Route::get('lang/{locale}', [App\Http\Controllers\LanguageController::class, 'switch'])->name('lang.switch');

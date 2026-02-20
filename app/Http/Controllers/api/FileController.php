@@ -4,11 +4,16 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\OptionsIgnore;
+use App\Services\ArchiveBuildService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
+    /**
+     * Endpoint existant — Retourne la liste plate des fichiers (backward compatible).
+     *
+     * Route : GET /data
+     */
     public function getFiles(): JsonResponse
     {
         $dir = storage_path('app/public/data');
@@ -45,5 +50,29 @@ class FileController extends Controller
         }
 
         return $files;
+    }
+
+    /**
+     * Retourne le manifest d'archives avec Merkle Trees.
+     *
+     * Le manifest est reconstruit AUTOMATIQUEMENT quand les fichiers changent.
+     * Aucune commande manuelle nécessaire — le service détecte les modifications
+     * et reconstruit si le manifest est périmé.
+     *
+     * Route : GET /archive-manifest
+     */
+    public function getArchiveManifest(): JsonResponse
+    {
+        $service = new ArchiveBuildService();
+        $manifest = $service->getManifest();
+
+        if (!$manifest) {
+            return response()->json(
+                ['error' => 'No data directory found'],
+                404
+            );
+        }
+
+        return response()->json($manifest, 200, [], JSON_UNESCAPED_SLASHES);
     }
 }

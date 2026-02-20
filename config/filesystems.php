@@ -20,6 +20,17 @@ return [
             'visibility' => 'public',
             'throw' => false,
         ],
+                
+        'public' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            // 'url' => rtrim(env('APP_URL'), '/').'/storage',
+            'serve' => true,
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
 
         'uploads' => [
             'driver' => 'local',
