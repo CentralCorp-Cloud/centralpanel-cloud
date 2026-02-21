@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -9,7 +10,7 @@ class AdminLoaderController extends Controller
 {
     public function index()
     {
-        $row = OptionsLoader::first(); // Assume you have only one settings row
+        $row = OptionsLoader::first();
 
         return view('admin.loader', compact('row'));
     }
@@ -45,22 +46,31 @@ class AdminLoaderController extends Controller
         if ($response->successful()) {
             $html = $response->body();
             $dom = new \DOMDocument;
+
             libxml_use_internal_errors(true);
             $dom->loadHTML($html);
             libxml_clear_errors();
-            $xpath = new \DOMXPath($dom);
-            $versionsNodeList = $xpath->query('//td[@class="download-version"]');
 
-            foreach ($versionsNodeList as $versionNode) {
-                $version = trim($versionNode->nodeValue);
-                if (!empty($version)) {
-                    $builds[] = "$mcVersion-$version";
+            $xpath = new \DOMXPath($dom);
+
+            $links = $xpath->query('//a[contains(@href, "maven.minecraftforge.net/net/minecraftforge/forge/")]');
+
+            foreach ($links as $link) {
+                $href = $link->getAttribute('href');
+
+                if (preg_match('/forge\/([\d\.\-]+)\/forge-\1-/', $href, $matches)) {
+                    $version = $matches[1];
+
+                    if (!in_array($version, $builds)) {
+                        $builds[] = $version;
+                    }
                 }
             }
         }
 
         return response()->json(['builds' => $builds]);
     }
+
     public function getFabricVersions()
     {
         $url = 'https://meta.fabricmc.net/v2/versions/loader';
@@ -74,4 +84,3 @@ class AdminLoaderController extends Controller
         return response()->json(['versions' => $versions]);
     }
 }
-
