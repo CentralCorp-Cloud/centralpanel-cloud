@@ -36,7 +36,7 @@ jobs:
           fi
 
           echo "PANEL_VERSION=${VERSION}" >> "${GITHUB_ENV}"
-          echo "ZIP_NAME=centralpanel-v${VERSION}.zip" >> "${GITHUB_ENV}"
+          echo "ZIP_NAME=panel-v${VERSION}.zip" >> "${GITHUB_ENV}"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
