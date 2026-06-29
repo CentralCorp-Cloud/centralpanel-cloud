@@ -69,15 +69,27 @@ jobs:
           cd "${RUNNER_TEMP}"
           sha256sum "${ZIP_NAME}" > "${ZIP_NAME}.sha256"
 
-      - name: Upload ZIP artifact
+      - name: Upload CI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: centralpanel-v2
+          name: ci-package-${{ env.PANEL_VERSION }}
           path: |
             ${{ runner.temp }}/${{ env.ZIP_NAME }}
             ${{ runner.temp }}/${{ env.ZIP_NAME }}.sha256
           if-no-files-found: error
           retention-days: 30
+
+      - name: Add package summary
+        shell: bash
+        run: |
+          {
+            echo "### Package generated"
+            echo ""
+            echo "- Version: \`${PANEL_VERSION}\`"
+            echo "- Installable ZIP: \`${ZIP_NAME}\`"
+            echo "- CI artifacts are wrapped by GitHub Actions. Extract the artifact first, then use the ZIP inside."
+            echo "- For a real release/update package, push a tag like \`v1.0.9\`; the ZIP will be attached directly to the GitHub Release."
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Attach ZIP to GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
