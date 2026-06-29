@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\PanelVersion;
 use App\Updates\UpdateManager;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ class UpdateController extends Controller
 {
     public function index(Request $request)
     {
-        $currentVersion = config('app.version', '0.0.0');
+        $currentVersion = PanelVersion::current();
         $manager = new UpdateManager(new Filesystem(), $currentVersion);
         $info = $manager->fetchUpdateInfo();
         $hasUpdate = $manager->hasUpdate($info);
@@ -24,7 +25,7 @@ class UpdateController extends Controller
 
     public function update(Request $request)
     {
-        $currentVersion = config('app.version', '0.0.0');
+        $currentVersion = PanelVersion::current();
         $manager = new UpdateManager(new Filesystem(), $currentVersion);
         try {
             $updated = $manager->updateIfAvailable();

@@ -11,8 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('options_general', function (Blueprint $table) {
-            $table->dropColumn(['market_api_key', 'active_theme_id', 'active_theme_version']);
+        $columns = array_values(array_filter(
+            ['market_api_key', 'active_theme_id', 'active_theme_version'],
+            fn (string $column): bool => Schema::hasColumn('options_general', $column)
+        ));
+
+        if (empty($columns)) {
+            return;
+        }
+
+        Schema::table('options_general', function (Blueprint $table) use ($columns) {
+            $table->dropColumn($columns);
         });
     }
 
@@ -21,10 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('options_general', function (Blueprint $table) {
-            $table->string('market_api_key', 255)->nullable();
-            $table->integer('active_theme_id')->nullable();
-            $table->string('active_theme_version', 50)->nullable();
-        });
+        //
     }
 };

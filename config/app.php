@@ -40,7 +40,7 @@ return [
     */
 
     'debug' => (bool) env('APP_DEBUG', false),
-    'version' => '1.0.8',
+    'version' => \App\Support\PanelVersion::current(),
     /*
     |--------------------------------------------------------------------------
     | Application URL

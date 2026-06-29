@@ -2,35 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OptionsRPC;
+use App\Support\PanelOptions;
 use Illuminate\Http\Request;
 
 class AdminRpcController extends Controller
 {
     public function show()
     {
-        $rpcOptions = OptionsRPC::first();
-        if (!$rpcOptions) {
-            $rpcOptions = OptionsRPC::create([
-                'rpc_activation' => 1,
-                'rpc_id' => '1144257170561581097',
-                'rpc_details' => 'Dans le launcher',
-                'rpc_state' => 'En exploration',
-                'rpc_large_text' => 'Minecraft',
-                'rpc_small_text' => 'Multiplayer server',
-                'rpc_button1' => 'Discord',
-                'rpc_button1_url' => 'https://discord.gg/VCmNXHvf77',
-                'rpc_button2' => 'Site Web',
-                'rpc_button2_url' => 'https://conflictura.eu',
-            ]);
-        }
+        $rpcOptions = PanelOptions::rpc();
 
         return view('admin.rpc', compact('rpcOptions'));
     }
 
     public function update(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'rpc_activation' => 'boolean',
             'rpc_id' => 'required|string|max:100',
             'rpc_details' => 'required|string|max:255',
@@ -43,11 +29,7 @@ class AdminRpcController extends Controller
             'rpc_button2_url' => 'nullable|url|max:200',
         ]);
 
-        $rpcOptions = OptionsRPC::first();
-
-        if ($rpcOptions) {
-            $rpcOptions->update($request->all());
-        }
+        PanelOptions::rpc()->update($validated);
 
         return redirect()->route('admin.rpc')->with('success', __('messages.flash.rpc_updated'));
     }

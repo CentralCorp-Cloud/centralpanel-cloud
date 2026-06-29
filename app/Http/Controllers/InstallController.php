@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\DotenvEditor;
 use Exception;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Http\Request;
@@ -124,12 +125,12 @@ class InstallController extends Controller
         // On met juste à jour les valeurs nécessaires pour l'installation
         if (File::exists(base_path('.env'))) {
             $this->updateEnvValues([
-                'APP_NAME' => '"CentralCorp Panel"',
+                'APP_NAME' => 'CentralCorp Panel',
                 'APP_ENV' => 'production',
-                'APP_DEBUG' => 'false',
+                'APP_DEBUG' => false,
                 'APP_URL' => $this->getCorrectAppUrl(),
                 'DB_CONNECTION' => 'sqlite',
-                'DB_DATABASE' => database_path('database.sqlite'),
+                'DB_DATABASE' => $this->sqliteDatabasePath(),
             ]);
         } else {
             // Fallback si le fichier n'existe pas
@@ -139,55 +140,60 @@ class InstallController extends Controller
 
     private function createBasicEnvFile()
     {
-        $envContent = "APP_NAME=\"CentralCorp Panel\"\n";
-        $envContent .= "APP_ENV=production\n";
-        $envContent .= "APP_KEY=" . self::TEMP_KEY . "\n";
-        $envContent .= "APP_DEBUG=false\n";
-        $envContent .= "APP_URL=" . $this->getCorrectAppUrl() . "\n\n";
-        $envContent .= "LOG_CHANNEL=stack\n";
-        $envContent .= "LOG_DEPRECATIONS_CHANNEL=null\n";
-        $envContent .= "LOG_LEVEL=debug\n\n";
-        $envContent .= "DB_CONNECTION=sqlite\n";
-        $envContent .= "DB_DATABASE=" . database_path('database.sqlite') . "\n\n";
-        $envContent .= "BROADCAST_DRIVER=log\n";
-        $envContent .= "CACHE_DRIVER=file\n";
-        $envContent .= "FILESYSTEM_DISK=local\n";
-        $envContent .= "QUEUE_CONNECTION=sync\n";
-        $envContent .= "SESSION_DRIVER=file\n";
-        $envContent .= "SESSION_LIFETIME=120\n\n";
-        $envContent .= "MEMCACHED_HOST=127.0.0.1\n\n";
-        $envContent .= "REDIS_HOST=127.0.0.1\n";
-        $envContent .= "REDIS_PASSWORD=null\n";
-        $envContent .= "REDIS_PORT=6379\n\n";
-        $envContent .= "MAIL_MAILER=smtp\n";
-        $envContent .= "MAIL_HOST=mailpit\n";
-        $envContent .= "MAIL_PORT=1025\n";
-        $envContent .= "MAIL_USERNAME=null\n";
-        $envContent .= "MAIL_PASSWORD=null\n";
-        $envContent .= "MAIL_ENCRYPTION=null\n";
-        $envContent .= "MAIL_FROM_ADDRESS=\"hello@example.com\"\n";
-        $envContent .= "MAIL_FROM_NAME=\"\${APP_NAME}\"\n\n";
-
-        File::put(base_path('.env'), $envContent);
+        File::put(base_path('.env'), DotenvEditor::content([
+            [
+                'APP_NAME' => 'CentralCorp Panel',
+                'APP_ENV' => 'production',
+                'APP_KEY' => self::TEMP_KEY,
+                'APP_DEBUG' => false,
+                'APP_URL' => $this->getCorrectAppUrl(),
+            ],
+            [
+                'LOG_CHANNEL' => 'stack',
+                'LOG_DEPRECATIONS_CHANNEL' => 'null',
+                'LOG_LEVEL' => 'debug',
+            ],
+            [
+                'DB_CONNECTION' => 'sqlite',
+                'DB_DATABASE' => $this->sqliteDatabasePath(),
+            ],
+            [
+                'BROADCAST_DRIVER' => 'log',
+                'CACHE_DRIVER' => 'file',
+                'FILESYSTEM_DISK' => 'local',
+                'QUEUE_CONNECTION' => 'sync',
+                'SESSION_DRIVER' => 'file',
+                'SESSION_LIFETIME' => 120,
+            ],
+            [
+                'MEMCACHED_HOST' => '127.0.0.1',
+            ],
+            [
+                'REDIS_HOST' => '127.0.0.1',
+                'REDIS_PASSWORD' => 'null',
+                'REDIS_PORT' => 6379,
+            ],
+            [
+                'MAIL_MAILER' => 'smtp',
+                'MAIL_HOST' => 'mailpit',
+                'MAIL_PORT' => 1025,
+                'MAIL_USERNAME' => 'null',
+                'MAIL_PASSWORD' => 'null',
+                'MAIL_ENCRYPTION' => 'null',
+                'MAIL_FROM_ADDRESS' => 'hello@example.com',
+                'MAIL_FROM_NAME' => 'CentralCorp Panel',
+            ],
+        ]));
     }
 
     private function updateEnvValues(array $values)
     {
-        $envPath = base_path('.env');
-        $envContent = File::get($envPath);
+        DotenvEditor::updateFile(base_path('.env'), $values);
+    }
 
-        foreach ($values as $key => $value) {
-            $pattern = "/^{$key}=.*/m";
-            $replacement = "{$key}={$value}";
-
-            if (preg_match($pattern, $envContent)) {
-                $envContent = preg_replace($pattern, $replacement, $envContent);
-            } else {
-                $envContent .= "\n{$replacement}";
-            }
-        }
-
-        File::put($envPath, $envContent);
+    private function sqliteDatabasePath(): string
+    {
+        return DotenvEditor::normalizePath(database_path('database.sqlite'));
     }
 
     private function ensureDatabaseExists()
@@ -255,26 +261,30 @@ class InstallController extends Controller
             ]);
 
             $this->prepareEnvironment();
+            Artisan::call('config:clear');
+            Artisan::call('route:clear');
+            Artisan::call('view:clear');
 
             // Step 1: Configure database
             $databaseType = $request->input('type');
+            $databaseEnvValues = [];
 
             if ($databaseType === 'sqlite') {
                 // Create SQLite database file
                 $this->ensureDatabaseExists();
 
-                // Update .env for SQLite
-                $this->updateEnvValues([
+                $databaseEnvValues = [
                     'DB_CONNECTION' => 'sqlite',
-                    'DB_DATABASE' => database_path('database.sqlite'),
+                    'DB_DATABASE' => $this->sqliteDatabasePath(),
                     'DB_HOST' => '',
                     'DB_PORT' => '',
                     'DB_USERNAME' => '',
                     'DB_PASSWORD' => '',
-                ]);
+                ];
 
                 // Configure and test SQLite connection
                 DB::purge('sqlite');
+                Config::set('database.default', 'sqlite');
                 Config::set('database.connections.sqlite.database', database_path('database.sqlite'));
                 DB::connection('sqlite')->getPdo();
             } else {
@@ -296,15 +306,14 @@ class InstallController extends Controller
 
                 DB::connection('test')->getPdo();
 
-                // Update .env with MySQL config
-                $this->updateEnvValues([
+                $databaseEnvValues = [
                     'DB_CONNECTION' => $databaseType,
                     'DB_HOST' => $host,
                     'DB_PORT' => $port,
                     'DB_DATABASE' => $database,
                     'DB_USERNAME' => $user,
                     'DB_PASSWORD' => $password,
-                ]);
+                ];
 
                 // Configure the default connection for migrations
                 Config::set('database.default', $databaseType);
@@ -323,11 +332,7 @@ class InstallController extends Controller
                 ]);
             }
 
-            // Step 2: Clear caches and run migrations
-            Artisan::call('config:clear');
-            Artisan::call('route:clear');
-            Artisan::call('view:clear');
-
+            // Step 2: Run migrations
             Artisan::call('migrate:fresh', ['--force' => true]);
 
             // Step 3: Create admin user
@@ -340,27 +345,24 @@ class InstallController extends Controller
             ]);
 
             // Step 4: Post-installation setup
-            Artisan::call('storage:link');
+            try {
+                Artisan::call('storage:link', ['--force' => true]);
+            } catch (Throwable) {
+                // The link may already exist on local/dev installs.
+            }
 
             File::put(storage_path('installed'), 'Installation complétée le ' . now()->format('Y-m-d H:i:s') . "\nAdmin: " . $user->email);
 
-            $this->generateAppKey();
-
             $correctUrl = $this->getCorrectAppUrl();
-            $this->updateEnvValues(['APP_URL' => $correctUrl]);
             Config::set('app.url', $correctUrl);
 
-            try {
-                Artisan::call('cache:clear');
-            } catch (Exception $e) {
-                // Ignore cache errors
-            }
+            $this->writeEnvironmentAfterResponse($this->buildFinalEnvValues(
+                $databaseEnvValues,
+                $this->makeAppKey(),
+                $correctUrl
+            ));
 
-            Artisan::call('config:cache');
-            Artisan::call('route:cache');
-            Artisan::call('view:cache');
-
-            return redirect()->route('install.finish')->with('success', __('messages.install.install_success'));
+            return view('install.success');
         } catch (Throwable $t) {
             return back()->withInput()->with('error', __('messages.install.install_error') . ' ' . $t->getMessage());
         }
@@ -379,16 +381,49 @@ class InstallController extends Controller
         }
     }
 
-    private function generateAppKey()
+    private function makeAppKey(): string
     {
-        $key = 'base64:' . base64_encode(Encrypter::generateKey(config('app.cipher')));
+        return 'base64:' . base64_encode(Encrypter::generateKey(config('app.cipher')));
+    }
 
-        $this->updateEnvValues([
-            'APP_KEY' => $key,
+    private function buildFinalEnvValues(array $databaseValues, string $appKey, string $appUrl): array
+    {
+        return array_merge([
+            'APP_NAME' => 'CentralCorp Panel',
+            'APP_ENV' => 'production',
+            'APP_KEY' => $appKey,
+            'APP_DEBUG' => false,
+            'APP_URL' => $appUrl,
+            'LOG_CHANNEL' => 'stack',
+            'LOG_DEPRECATIONS_CHANNEL' => 'null',
+            'LOG_LEVEL' => 'error',
+        ], $databaseValues, [
+            'BROADCAST_DRIVER' => 'log',
+            'CACHE_DRIVER' => 'file',
+            'FILESYSTEM_DISK' => 'local',
+            'QUEUE_CONNECTION' => 'sync',
+            'SESSION_DRIVER' => 'file',
+            'SESSION_LIFETIME' => 120,
+            'MEMCACHED_HOST' => '127.0.0.1',
+            'REDIS_HOST' => '127.0.0.1',
+            'REDIS_PASSWORD' => 'null',
+            'REDIS_PORT' => 6379,
+            'MAIL_MAILER' => 'smtp',
+            'MAIL_HOST' => 'mailpit',
+            'MAIL_PORT' => 1025,
+            'MAIL_USERNAME' => 'null',
+            'MAIL_PASSWORD' => 'null',
+            'MAIL_ENCRYPTION' => 'null',
+            'MAIL_FROM_ADDRESS' => 'hello@example.com',
+            'MAIL_FROM_NAME' => 'CentralCorp Panel',
         ]);
+    }
 
-        // Recharger la configuration
-        Config::set('app.key', $key);
+    private function writeEnvironmentAfterResponse(array $values): void
+    {
+        app()->terminating(function () use ($values): void {
+            DotenvEditor::updateFile(base_path('.env'), $values);
+        });
     }
 
     public static function getRequirements(): array

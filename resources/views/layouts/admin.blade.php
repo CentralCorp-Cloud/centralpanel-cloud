@@ -1,178 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title')</title>
+    <title>@yield('title', config('app.name', 'CentralCorp Panel'))</title>
 
     <script>
         (function() {
-            const currentTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-bs-theme', currentTheme);
-            if (currentTheme === 'dark') {
-                document.write('<style>#file-manager-css{display:none;} #file-manager-dark-css{display:block;}</style>');
-            } else {
-                document.write('<style>#file-manager-css{display:block;} #file-manager-dark-css{display:none;}</style>');
-            }
+            document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'light');
         })();
     </script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('assets/vendor/admin.css') }}">
     <link id="file-manager-css" rel="stylesheet" href="{{ asset('vendor/file-manager/css/file-manager.css') }}">
     <link id="file-manager-dark-css" rel="stylesheet" href="{{ asset('vendor/file-manager/css/file-manager-dark.css') }}" disabled>
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
+    @stack('styles')
 </head>
+
+@php
+    $navGroups = [
+        __('messages.sidebar.panel') => [
+            ['route' => 'admin.index', 'icon' => 'bi-speedometer2', 'label' => __('messages.dashboard.title'), 'match' => 'admin.index'],
+            ['route' => 'admin.users', 'icon' => 'bi-people', 'label' => __('messages.sidebar.users'), 'match' => 'admin.users*'],
+            ['route' => 'admin.config', 'icon' => 'bi-gear', 'label' => __('messages.sidebar.config'), 'match' => 'admin.config*'],
+            ['route' => 'admin.file-manager', 'icon' => 'bi-folder', 'label' => __('messages.sidebar.file_manager'), 'match' => 'admin.file-manager'],
+            ['route' => 'admin.update', 'icon' => 'bi-cloud-arrow-up', 'label' => __('messages.sidebar.update'), 'match' => 'admin.update'],
+        ],
+        __('messages.sidebar.configuration') => [
+            ['route' => 'admin.general', 'icon' => 'bi-sliders', 'label' => __('messages.sidebar.general'), 'match' => 'admin.general*'],
+            ['route' => 'admin.rpc', 'icon' => 'bi-discord', 'label' => __('messages.sidebar.rpc'), 'match' => 'admin.rpc*'],
+            ['route' => 'admin.server', 'icon' => 'bi-hdd-network', 'label' => __('messages.sidebar.server'), 'match' => 'admin.server*'],
+        ],
+        __('messages.sidebar.security_header') => [
+            ['route' => 'admin.security', 'icon' => 'bi-shield-lock', 'label' => __('messages.sidebar.security_link'), 'match' => 'admin.security*'],
+            ['route' => 'admin.whitelist', 'icon' => 'bi-list-check', 'label' => __('messages.sidebar.whitelist'), 'match' => 'admin.whitelist*'],
+        ],
+        __('messages.sidebar.client') => [
+            ['route' => 'admin.mods', 'icon' => 'bi-box-seam', 'label' => __('messages.sidebar.optional_mods'), 'match' => 'admin.mods*'],
+            ['route' => 'admin.loader', 'icon' => 'bi-cloud-arrow-down', 'label' => __('messages.sidebar.loader'), 'match' => 'admin.loader*'],
+            ['route' => 'admin.ignore', 'icon' => 'bi-slash-circle', 'label' => __('messages.sidebar.ignore'), 'match' => 'admin.ignore*'],
+        ],
+        __('messages.sidebar.interface') => [
+            ['route' => 'admin.ui', 'icon' => 'bi-window-sidebar', 'label' => __('messages.sidebar.ui'), 'match' => 'admin.ui*'],
+            ['route' => 'admin.bg', 'icon' => 'bi-image', 'label' => __('messages.sidebar.background'), 'match' => 'admin.bg*'],
+        ],
+    ];
+@endphp
 
 <body>
 <div class="wrapper">
     <nav id="sidebar" class="sidebar js-sidebar">
         <div class="sidebar-content js-simplebar">
-            <a class="sidebar-brand text-white" href="{{ route('admin.index') }}">
-                <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" class="sidebar-brand-img">
+            <a class="sidebar-brand text-white" href="{{ route('admin.index') }}" aria-label="{{ config('app.name', 'CentralCorp Panel') }}">
+                <img src="{{ asset('assets/img/logo.png') }}" alt="{{ config('app.name', 'CentralCorp Panel') }}" class="sidebar-brand-img">
             </a>
+
             <ul class="sidebar-nav">
-                <li class="sidebar-header">
-                        {{ __('messages.sidebar.panel') }}
-                    </li>
-                    <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.users') ? 'active' : '' }}" href="{{ route('admin.users') }}">
-                        <i class="bi bi-people align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.users') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.config') ? 'active' : '' }}" href="{{ route('admin.config') }}">
-                        <i class="bi bi-gear align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.config') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.file-manager') ? 'active' : '' }}" href="{{ route('admin.file-manager') }}">
-                        <i class="bi bi-folder align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.file_manager') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.update') ? 'active' : '' }}" href="{{ route('admin.update') }}">
-                        <i class="bi bi-sort-numeric-up-alt align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.update') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-header">
-                    {{ __('messages.sidebar.configuration') }}
-                </li>
-                
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.general') ? 'active' : '' }}" href="{{ route('admin.general') }}">
-                        <i class="bi bi-sliders align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.general') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.rpc') ? 'active' : '' }}" href="{{ route('admin.rpc') }}">
-                        <i class="bi bi-cpu align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.rpc') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.server') ? 'active' : '' }}" href="{{ route('admin.server') }}">
-                        <i class="bi bi-hdd align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.server') }}</span>
-                    </a>
-                </li>
-
-                <li class="sidebar-header">
-                    {{ __('messages.sidebar.security_header') }}
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.security') ? 'active' : '' }}" href="{{ route('admin.security') }}">
-                        <i class="bi bi-lock align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.security_link') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.whitelist') ? 'active' : '' }}" href="{{ route('admin.whitelist') }}">
-                        <i class="bi bi-list-check align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.whitelist') }}</span>
-                    </a>
-                </li>
-                
-
-                <li class="sidebar-header">
-                    {{ __('messages.sidebar.client') }}
-                </li>
-                
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.mods') ? 'active' : '' }}" href="{{ route('admin.mods') }}">
-                        <i class="bi bi-box align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.optional_mods') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.loader') ? 'active' : '' }}" href="{{ route('admin.loader') }}">
-                        <i class="bi bi-cloud-arrow-down"></i> <span class="align-middle">{{ __('messages.sidebar.loader') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.ignore') ? 'active' : '' }}" href="{{ route('admin.ignore') }}">
-                        <i class="bi bi-slash align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.ignore') }}</span>
-                    </a>
-                </li>
-
-                <li class="sidebar-header">
-                    {{ __('messages.sidebar.interface') }}
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.ui') ? 'active' : '' }}" href="{{ route('admin.ui') }}">
-                        <i class="bi bi-display align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.ui') }}</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->routeIs('admin.bg') ? 'active' : '' }}" href="{{ route('admin.bg') }}">
-                        <i class="bi bi-image align-middle"></i> <span class="align-middle">{{ __('messages.sidebar.background') }}</span>
-                    </a>
-                </li>
-
+                @foreach($navGroups as $header => $items)
+                    <li class="sidebar-header">{{ $header }}</li>
+                    @foreach($items as $item)
+                        @continue(($item['optional'] ?? false) && !Route::has($item['route']))
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs($item['match']) ? 'active' : '' }}" href="{{ route($item['route']) }}">
+                                <i class="bi {{ $item['icon'] }} align-middle"></i>
+                                <span class="align-middle">{{ $item['label'] }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+                @endforeach
             </ul>
-
         </div>
     </nav>
 
     <div class="main">
-        <nav class="navbar navbar-expand bg-body-secondary navbar-bgw">
-            <a class="sidebar-toggle js-sidebar-toggle">
+        <nav class="navbar navbar-expand navbar-bgw bg-body">
+            <button class="sidebar-toggle js-sidebar-toggle btn btn-link text-body" type="button" aria-label="Menu">
                 <i class="hamburger align-self-center"></i>
-            </a>
-            <div class="d-none d-sm-inline-block" bis_skin_checked="1">
-                <a href="https://discord.gg/VCmNXHvf77" class="btn btn-outline-primary mx-1" target="_blank" rel="noopener noreferrer">
+            </button>
+
+            <div class="d-none d-md-flex align-items-center gap-2">
+                <a href="https://discord.gg/VCmNXHvf77" class="btn btn-outline-primary btn-sm btn-icon" target="_blank" rel="noopener noreferrer">
                     <i class="bi bi-discord"></i>
                     {{ __('messages.navbar.discord') }}
                 </a>
-
-                <a href="https://centralcorp.github.io/" class="btn btn-outline-secondary mx-1" target="_blank" rel="noopener noreferrer">
+                <a href="https://centralcorp.github.io/" class="btn btn-outline-secondary btn-sm btn-icon" target="_blank" rel="noopener noreferrer">
                     <i class="bi bi-journals"></i>
                     {{ __('messages.navbar.documentation') }}
                 </a>
             </div>
-            <div class="ms-auto d-flex align-items-center">
-                <button class="btn btn-outline-secondary" id="themeToggle" data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="{{ __('messages.navbar.theme_dark') }}" data-bs-original-title="{{ __('messages.navbar.theme_dark') }}">
+
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-square"
+                        id="themeToggle"
+                        type="button"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="bottom"
+                        data-theme-dark-label="{{ __('messages.navbar.theme_dark') }}"
+                        data-theme-light-label="{{ __('messages.navbar.theme_light') }}"
+                        aria-label="{{ __('messages.navbar.theme_dark') }}">
                     <i id="themeIcon" class="bi bi-moon-stars"></i>
                 </button>
-                <div class="dropdown ms-2">
-                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="langDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-translate"></i> {{ strtoupper(app()->getLocale()) }}
+
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle btn-icon" type="button" id="langDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-translate"></i>
+                        {{ strtoupper(app()->getLocale()) }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
                         <li><a class="dropdown-item" href="{{ route('lang.switch', 'fr') }}">Français</a></li>
                         <li><a class="dropdown-item" href="{{ route('lang.switch', 'en') }}">English</a></li>
                     </ul>
                 </div>
-                <div class="dropdown ms-2">
-                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+
+                <div class="dropdown">
+                    <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         {{ Auth::user()->name }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li>
                             <a class="dropdown-item" href="{{ route('logout') }}"
-                               onclick="event.preventDefault();
-                                             document.getElementById('logout-form').submit();">
-                                {{ __('messages.navbar.logout') }}
+                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="bi bi-box-arrow-right me-2"></i>{{ __('messages.navbar.logout') }}
                             </a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                 @csrf
@@ -185,14 +139,18 @@
 
         <main class="content">
             <div class="container-fluid">
-                <h1 class="mt-4">@yield('page-title')</h1>
+                @if(View::hasSection('page-title'))
+                    <x-admin.page-header :title="trim($__env->yieldContent('page-title'))" />
+                @endif
+
+                <x-admin.flash />
                 @yield('content')
             </div>
         </main>
-        <footer class="bg-body-secondary py-4 mt-4">
-                <div class="text-center">
-                    <p class="mb-0">{{ __('messages.dashboard.copy_rights') }}</p>
-                </div>
+
+        <footer class="bg-body border-top py-3 mt-auto">
+            <div class="container-fluid text-center text-body-secondary small">
+                {{ __('messages.dashboard.copy_rights') }}
             </div>
         </footer>
     </div>
@@ -201,62 +159,8 @@
 <script src="{{ asset('assets/vendor/admin.js') }}"></script>
 <script src="{{ asset('vendor/file-manager/js/file-manager.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
-        const htmlElement = document.documentElement;
-        const fileManagerCssLink = document.getElementById('file-manager-css');
-        const fileManagerDarkCssLink = document.getElementById('file-manager-dark-css');
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        htmlElement.setAttribute('data-bs-theme', currentTheme);
-        updateFileManagerCss(currentTheme);  // Mettre à jour le CSS du gestionnaire de fichiers
-
-        function updateTooltipAndIcon() {
-            const isDarkMode = htmlElement.getAttribute('data-bs-theme') === 'dark';
-            if (isDarkMode) {
-                themeIcon.classList.replace('bi-moon-stars', 'bi-sun');
-                themeToggle.setAttribute('data-bs-original-title', 'Thème clair');
-            } else {
-                themeIcon.classList.replace('bi-sun', 'bi-moon-stars');
-                themeToggle.setAttribute('data-bs-original-title', 'Thème sombre');
-            }
-            bootstrap.Tooltip.getInstance(themeToggle).setContent({ '.tooltip-inner': themeToggle.getAttribute('data-bs-original-title') });
-        }
-
-        function updateFileManagerCss(theme) {
-            if (theme === 'dark') {
-                fileManagerCssLink.disabled = true;  // Désactive le CSS clair
-                fileManagerDarkCssLink.disabled = false;  // Active le CSS sombre
-            } else {
-                fileManagerCssLink.disabled = false;  // Active le CSS clair
-                fileManagerDarkCssLink.disabled = true;  // Désactive le CSS sombre
-            }
-        }
-
-        updateTooltipAndIcon();
-
-        themeToggle.addEventListener('click', function() {
-            const isDarkMode = htmlElement.getAttribute('data-bs-theme') === 'dark';
-
-            if (isDarkMode) {
-                htmlElement.setAttribute('data-bs-theme', 'light');
-                localStorage.setItem('theme', 'light');
-            } else {
-                htmlElement.setAttribute('data-bs-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-            }
-            updateTooltipAndIcon();
-            updateFileManagerCss(htmlElement.getAttribute('data-bs-theme'));
-            bootstrap.Tooltip.getInstance(themeToggle).hide();
-        });
-    });
-</script>
+<script src="{{ asset('assets/js/panel.js') }}"></script>
+@stack('scripts')
 @yield('scripts')
 </body>
 </html>

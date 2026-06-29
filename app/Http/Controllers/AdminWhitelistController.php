@@ -4,103 +4,82 @@ namespace App\Http\Controllers;
 
 use App\Models\OptionsWhitelist;
 use App\Models\OptionsWhitelistRole;
-use Illuminate\Http\Request;
-use App\Models\OptionsSecurity;
 use App\Request\AzuriomApi;
+use App\Support\PanelOptions;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AdminWhitelistController extends Controller
 {
-    private $azuriomApi;
+    private ?AzuriomApi $azuriomApi = null;
 
     public function __construct()
     {
         try {
             $this->azuriomApi = new AzuriomApi();
-        } catch (\RuntimeException $e) {
+        } catch (\RuntimeException) {
             $this->azuriomApi = null;
         }
     }
 
     public function index()
     {
-        $users = OptionsWhitelist::all();
-        $roles = OptionsWhitelistRole::all();
-        $securityOptions = OptionsSecurity::first();
+        $users = OptionsWhitelist::orderBy('users')->get();
+        $roles = OptionsWhitelistRole::orderBy('role')->get();
+        $securityOptions = PanelOptions::security();
         $hasAzuriomApi = $this->azuriomApi !== null;
-        
+
         return view('admin.whitelist', compact('users', 'roles', 'securityOptions', 'hasAzuriomApi'));
     }
 
-    /**
-     * Fetch AJAX de tous les utilisateurs Azuriom (pour mise en cache côté client)
-     */
     public function fetchUsers(Request $request)
     {
         if (!$this->azuriomApi) {
             return response()->json(['error' => __('messages.flash.azuriom_api_error')], 503);
         }
 
-        $allUsers = $this->azuriomApi->getUsers();
+        $allUsers = Cache::remember('azuriom.users', now()->addMinutes(5), fn () => $this->azuriomApi->getUsers());
         $whitelistedUsers = OptionsWhitelist::pluck('users')->toArray();
 
-        // Filtrer et formater les résultats
         $results = collect($allUsers)
             ->filter(function ($user) use ($whitelistedUsers) {
-                // Exclure les utilisateurs déjà whitelistés, bannis ou supprimés
-                if (in_array($user['name'], $whitelistedUsers)) return false;
+                if (in_array($user['name'], $whitelistedUsers, true)) return false;
                 if ($user['is_banned'] ?? false) return false;
                 if (str_starts_with($user['name'], 'Deleted #')) return false;
                 return true;
             })
-            ->sortBy(function ($user) {
-                // Admins en premier, puis par nom
-                return [($user['role']['is_admin'] ?? false) ? 0 : 1, strtolower($user['name'])];
-            })
-            ->map(function ($user) {
-                return [
-                    'id' => $user['id'],
-                    'name' => $user['name'],
-                    'role' => $user['role']['name'] ?? 'Unknown',
-                    'role_color' => $user['role']['color'] ?? '#666',
-                    'is_admin' => $user['role']['is_admin'] ?? false,
-                ];
-            })
+            ->sortBy(fn ($user) => [($user['role']['is_admin'] ?? false) ? 0 : 1, strtolower($user['name'])])
+            ->map(fn ($user) => [
+                'id' => $user['id'],
+                'name' => $user['name'],
+                'role' => $user['role']['name'] ?? 'Unknown',
+                'role_color' => $user['role']['color'] ?? '#666',
+                'is_admin' => $user['role']['is_admin'] ?? false,
+            ])
             ->values();
 
         return response()->json($results);
     }
 
-    /**
-     * Fetch AJAX de tous les rôles Azuriom (pour mise en cache côté client)
-     */
     public function fetchRoles(Request $request)
     {
         if (!$this->azuriomApi) {
             return response()->json(['error' => __('messages.flash.azuriom_api_error')], 503);
         }
 
-        $allRoles = $this->azuriomApi->getRoles();
+        $allRoles = Cache::remember('azuriom.roles', now()->addMinutes(5), fn () => $this->azuriomApi->getRoles());
         $whitelistedRoles = OptionsWhitelistRole::pluck('role')->toArray();
 
-        // Filtrer et formater les résultats
         $results = collect($allRoles)
-            ->filter(function ($role) use ($whitelistedRoles) {
-                // Exclure les rôles déjà whitelistés
-                return !in_array($role['name'], $whitelistedRoles);
-            })
-            ->sortBy(function ($role) {
-                // Admins en premier, puis par nom
-                return [($role['is_admin'] ?? false) ? 0 : 1, strtolower($role['name'])];
-            })
-            ->map(function ($role) {
-                return [
-                    'id' => $role['id'],
-                    'name' => $role['name'],
-                    'color' => $role['color'] ?? '#666',
-                    'power' => $role['power'] ?? 0,
-                    'is_admin' => $role['is_admin'] ?? false,
-                ];
-            })
+            ->filter(fn ($role) => !in_array($role['name'], $whitelistedRoles, true))
+            ->sortBy(fn ($role) => [($role['is_admin'] ?? false) ? 0 : 1, strtolower($role['name'])])
+            ->map(fn ($role) => [
+                'id' => $role['id'],
+                'name' => $role['name'],
+                'color' => $role['color'] ?? '#666',
+                'power' => $role['power'] ?? 0,
+                'is_admin' => $role['is_admin'] ?? false,
+            ])
             ->values();
 
         return response()->json($results);
@@ -108,30 +87,29 @@ class AdminWhitelistController extends Controller
 
     public function store(Request $request)
     {
-        $whitelistActivation = $request->input('whitelist');
+        $validated = $request->validate([
+            'whitelist' => 'required|boolean',
+            'whitelist_users' => 'nullable|array',
+            'whitelist_users.*' => 'string|max:255',
+            'azuriom_roles' => 'nullable|array',
+            'azuriom_roles.*' => 'string|max:255',
+        ]);
 
-        $securityOptions = OptionsSecurity::first();
+        $securityOptions = PanelOptions::security();
+        $securityOptions->whitelist = (bool) $validated['whitelist'];
+        $securityOptions->save();
 
-        if ($securityOptions) {
-            $securityOptions->whitelist = $whitelistActivation;
-            $securityOptions->save();
-        }
-
-        // Gérer les utilisateurs sélectionnés
-        if ($request->input('whitelist_users')) {
-            foreach ($request->input('whitelist_users') as $username) {
-                if (trim($username) !== '') {
-                    OptionsWhitelist::firstOrCreate(['users' => trim($username)]);
-                }
+        foreach ($validated['whitelist_users'] ?? [] as $username) {
+            $username = trim($username);
+            if ($username !== '') {
+                OptionsWhitelist::firstOrCreate(['users' => $username]);
             }
         }
 
-        // Gérer les rôles d'Azuriom sélectionnés
-        if ($request->input('azuriom_roles')) {
-            foreach ($request->input('azuriom_roles') as $role) {
-                if (trim($role) !== '') {
-                    OptionsWhitelistRole::firstOrCreate(['role' => trim($role)]);
-                }
+        foreach ($validated['azuriom_roles'] ?? [] as $role) {
+            $role = trim($role);
+            if ($role !== '') {
+                OptionsWhitelistRole::firstOrCreate(['role' => $role]);
             }
         }
 
@@ -141,12 +119,14 @@ class AdminWhitelistController extends Controller
     public function destroyUser($id)
     {
         OptionsWhitelist::findOrFail($id)->delete();
+
         return redirect()->route('admin.whitelist')->with('success', __('messages.flash.whitelist_user_deleted'));
     }
 
     public function destroyRole($id)
     {
         OptionsWhitelistRole::findOrFail($id)->delete();
+
         return redirect()->route('admin.whitelist')->with('success', __('messages.flash.whitelist_role_deleted'));
     }
 }

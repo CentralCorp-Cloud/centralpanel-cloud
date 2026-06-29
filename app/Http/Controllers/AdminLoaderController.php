@@ -2,84 +2,79 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PanelOptions;
 use Illuminate\Http\Request;
-use App\Models\OptionsLoader;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class AdminLoaderController extends Controller
 {
     public function index()
     {
-        $row = OptionsLoader::first();
+        $row = PanelOptions::loader();
 
         return view('admin.loader', compact('row'));
     }
 
     public function update(Request $request)
     {
-        $request->validate([
-            'minecraft_version' => 'required|string',
+        $validated = $request->validate([
+            'minecraft_version' => 'required|string|max:50',
             'loader_activation' => 'required|boolean',
-            'loader_type' => 'required|string',
-            'loader_forge_version' => 'nullable|string',
-            'loader_build_version' => 'nullable|string',
+            'loader_type' => 'required|string|in:forge,fabric,legacyfabric,neoForge,quilt',
+            'loader_forge_version' => 'nullable|string|max:50',
+            'loader_build_version' => 'nullable|string|max:50',
         ]);
 
-        $optionsLoader = OptionsLoader::first();
-        if (!$optionsLoader) {
-            $optionsLoader = new OptionsLoader();
-        }
-
-        $optionsLoader->fill($request->all());
-        $optionsLoader->save();
+        PanelOptions::loader()->update($validated);
 
         return redirect()->back()->with('success', __('messages.flash.loader_updated'));
     }
 
     public function getForgeBuilds(Request $request)
     {
-        $mcVersion = $request->query('mc_version');
-        $url = "https://files.minecraftforge.net/net/minecraftforge/forge/index_$mcVersion.html";
-        $response = Http::get($url);
-        $builds = [];
+        $validated = $request->validate([
+            'mc_version' => 'required|string|max:50',
+        ]);
 
-        if ($response->successful()) {
-            $html = $response->body();
+        $mcVersion = $validated['mc_version'];
+        $url = "https://files.minecraftforge.net/net/minecraftforge/forge/index_{$mcVersion}.html";
+
+        $builds = Cache::remember("forge_builds:{$mcVersion}", now()->addHours(6), function () use ($url) {
+            $response = Http::timeout(10)->get($url);
+            if (!$response->successful()) {
+                return [];
+            }
+
             $dom = new \DOMDocument;
-
             libxml_use_internal_errors(true);
-            $dom->loadHTML($html);
+            $dom->loadHTML($response->body());
             libxml_clear_errors();
 
             $xpath = new \DOMXPath($dom);
-
             $links = $xpath->query('//a[contains(@href, "maven.minecraftforge.net/net/minecraftforge/forge/")]');
+            $builds = [];
 
             foreach ($links as $link) {
                 $href = $link->getAttribute('href');
-
                 if (preg_match('/forge\/([\d\.\-]+)\/forge-\1-/', $href, $matches)) {
-                    $version = $matches[1];
-
-                    if (!in_array($version, $builds)) {
-                        $builds[] = $version;
-                    }
+                    $builds[] = $matches[1];
                 }
             }
-        }
+
+            return array_values(array_unique($builds));
+        });
 
         return response()->json(['builds' => $builds]);
     }
 
     public function getFabricVersions()
     {
-        $url = 'https://meta.fabricmc.net/v2/versions/loader';
-        $response = Http::get($url);
-        $versions = [];
+        $versions = Cache::remember('fabric_loader_versions', now()->addHours(6), function () {
+            $response = Http::timeout(10)->get('https://meta.fabricmc.net/v2/versions/loader');
 
-        if ($response->successful()) {
-            $versions = $response->json();
-        }
+            return $response->successful() ? $response->json() : [];
+        });
 
         return response()->json(['versions' => $versions]);
     }

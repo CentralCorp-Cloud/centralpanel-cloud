@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OptionsGeneral;
+use App\Support\PanelOptions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 
 class AdminConfigController extends Controller
 {
     public function show()
     {
-        $options = OptionsGeneral::first();
+        $options = PanelOptions::general();
+
         return view('admin.config', compact('options'));
     }
 
@@ -18,35 +20,38 @@ class AdminConfigController extends Controller
     {
         $validated = $request->validate([
             'app_name' => 'required|string|max:255',
-            'azuriom_url' => 'required|url',
-            'azuriom_api_key' => 'required|string|min:32|max:255'
+            'azuriom_url' => 'required|url|max:255',
+            'azuriom_api_key' => 'required|string|max:255',
         ]);
 
-        // Mettre à jour les options dans la base de données
-        $options = OptionsGeneral::firstOrNew([]);
+        $options = PanelOptions::general();
         $options->fill([
             'azuriom_url' => $validated['azuriom_url'],
-            'azuriom_api_key' => $validated['azuriom_api_key']
-        ]);
-        $options->save();
+            'azuriom_api_key' => $validated['azuriom_api_key'],
+        ])->save();
 
-        // Vérifier si le nom de l'application a changé
-        $currentAppName = config('app.name');
-        if ($validated['app_name'] !== $currentAppName) {
-            // Mettre à jour le nom de l'application dans le fichier .env
-            $envPath = base_path('.env');
-            $envContent = File::get($envPath);
-            $newEnvContent = preg_replace(
-                '/^APP_NAME=.*/m',
-                'APP_NAME="' . $validated['app_name'] . '"',
-                $envContent
-            );
-            File::put($envPath, $newEnvContent);
-            
-            // Vider le cache de configuration pour prendre en compte le changement
-            \Artisan::call('config:clear');
+        if ($validated['app_name'] !== config('app.name')) {
+            $this->updateEnvValue('APP_NAME', '"' . str_replace('"', '\"', $validated['app_name']) . '"');
+            Artisan::call('config:clear');
         }
 
         return redirect()->route('admin.config')->with('success', __('messages.flash.config_updated'));
+    }
+
+    private function updateEnvValue(string $key, string $value): void
+    {
+        $envPath = base_path('.env');
+        if (!File::exists($envPath)) {
+            return;
+        }
+
+        $envContent = File::get($envPath);
+        $line = "{$key}={$value}";
+
+        $envContent = preg_match("/^{$key}=.*/m", $envContent)
+            ? preg_replace("/^{$key}=.*/m", $line, $envContent)
+            : rtrim($envContent) . PHP_EOL . $line . PHP_EOL;
+
+        File::put($envPath, $envContent);
     }
 }

@@ -1,0 +1,88 @@
+name: Package panel
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Build production ZIP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create temporary environment
+        run: cp .env.example .env
+
+      - name: Determine package version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            BASE_VERSION="$(tr -d '\r\n' < VERSION)"
+            BASE_VERSION="${BASE_VERSION#v}"
+            VERSION="${BASE_VERSION}-dev.${GITHUB_SHA::7}"
+          fi
+
+          echo "PANEL_VERSION=${VERSION}" >> "${GITHUB_ENV}"
+          echo "ZIP_NAME=centralpanel-v${VERSION}.zip" >> "${GITHUB_ENV}"
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: bcmath, ctype, curl, fileinfo, mbstring, openssl, pdo, pdo_sqlite, tokenizer, xml, xmlwriter, zip
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --ansi --no-interaction --no-progress --prefer-dist
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Build panel ZIP
+        run: php artisan build:prod --panel-version="${PANEL_VERSION}" --commit="${GITHUB_SHA}" --output="${RUNNER_TEMP}/${ZIP_NAME}"
+
+      - name: Generate checksum
+        shell: bash
+        run: |
+          cd "${RUNNER_TEMP}"
+          sha256sum "${ZIP_NAME}" > "${ZIP_NAME}.sha256"
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: centralpanel-v2
+          path: |
+            ${{ runner.temp }}/${{ env.ZIP_NAME }}
+            ${{ runner.temp }}/${{ env.ZIP_NAME }}.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach ZIP to GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ runner.temp }}/${{ env.ZIP_NAME }}
+            ${{ runner.temp }}/${{ env.ZIP_NAME }}.sha256

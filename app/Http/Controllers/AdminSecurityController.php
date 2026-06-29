@@ -1,36 +1,27 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\OptionsSecurity;
+
+use App\Support\PanelOptions;
 use Illuminate\Http\Request;
 
 class AdminSecurityController extends Controller
 {
     public function show()
     {
-        $securityOptions = OptionsSecurity::first();
-        if (!$securityOptions) {
-            $securityOptions = OptionsSecurity::create([
-                'maintenance' => 0,
-                'maintenance_message' => 'Maintenance en cours.',
-            ]);
-        }
+        $securityOptions = PanelOptions::security();
 
         return view('admin.security', compact('securityOptions'));
     }
 
     public function update(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'maintenance' => 'boolean',
             'maintenance_message' => 'required|string|max:255',
         ]);
 
-        $SecurityOptions = OptionsSecurity::first();
-
-        if ($SecurityOptions) {
-            $SecurityOptions->update($request->all());
-        }
+        PanelOptions::security()->update($validated);
 
         return redirect()->route('admin.security')->with('success', __('messages.flash.security_updated'));
     }

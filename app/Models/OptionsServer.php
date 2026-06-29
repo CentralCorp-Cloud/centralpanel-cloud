@@ -35,9 +35,10 @@ class OptionsServer extends Model
         }
 
         if ($this->icon) {
-            $options = OptionsGeneral::first();
-            if ($options && $options->azuriom_url) {
-                return rtrim($options->azuriom_url, '/') . '/storage/' . ltrim(str_replace('storage/', '', $this->icon), '/');
+            static $azuriomUrl = null;
+            $azuriomUrl ??= OptionsGeneral::value('azuriom_url');
+            if ($azuriomUrl) {
+                return rtrim($azuriomUrl, '/') . '/storage/' . ltrim(str_replace('storage/', '', $this->icon), '/');
             }
         }
 

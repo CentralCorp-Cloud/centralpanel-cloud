@@ -1,54 +1,36 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\SettingsExportController;
+use App\Http\Controllers\Admin\UpdateController;
+use App\Http\Controllers\AdminBgController;
+use App\Http\Controllers\AdminConfigController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AdminRpcController;
+use App\Http\Controllers\AdminIgnoreController;
+use App\Http\Controllers\AdminLoaderController;
 use App\Http\Controllers\AdminModController;
+use App\Http\Controllers\AdminRpcController;
 use App\Http\Controllers\AdminSecurityController;
 use App\Http\Controllers\AdminServerController;
 use App\Http\Controllers\AdminUIController;
 use App\Http\Controllers\AdminWhitelistController;
-use App\Http\Controllers\AdminLoaderController;
-use App\Http\Controllers\AdminIgnoreController;
-use App\Http\Controllers\InstallController;
-use App\Http\Controllers\AdminConfigController;
-use App\Http\Controllers\users\AdminUserController;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\SettingsExportController;
-use App\Http\Controllers\AdminBgController;
 use App\Http\Controllers\api\ApiController;
 use App\Http\Controllers\api\FileController;
 use App\Http\Controllers\api\ModController;
-use App\Http\Controllers\Admin\UpdateController;
-
+use App\Http\Controllers\InstallController;
+use App\Http\Controllers\PanelController;
+use App\Http\Controllers\users\AdminUserController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Auth::routes(['register' => false]);
 
-// Routes d'installation
+Route::get('/', [PanelController::class, 'root']);
+
 Route::get('/install', [InstallController::class, 'showDatabase'])->name('install.database');
 Route::post('/install', [InstallController::class, 'install'])->name('install.store');
 Route::get('/install/finish', [InstallController::class, 'finish'])->name('install.finish');
 
-// Redirection de la route racine vers la page de connexion ou admin selon l'état de connexion
-Route::get('/', function () {
-    $isInstalled = File::exists(storage_path('installed'));
-    $hasRealKey = config('app.key') !== \App\Http\Controllers\InstallController::TEMP_KEY;
-
-    // L'application est installée seulement si les DEUX conditions sont vraies
-    // Cela évite les boucles de redirection en cas d'état incohérent
-    if (!$isInstalled || !$hasRealKey) {
-        return redirect()->route('install.database');
-    }
-
-    if (Auth::check()) {
-        return redirect()->route('admin.index');
-    }
-    return redirect()->route('login');
-});
-
-// Routes avec le préfixe 'admin' (groupées)
 Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.index');
 
@@ -57,6 +39,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
     Route::get('/general', [AdminController::class, 'general'])->name('admin.general');
     Route::post('/general/update', [AdminController::class, 'updateGeneral'])->name('admin.general.update');
+
     Route::get('/security', [AdminSecurityController::class, 'show'])->name('admin.security');
     Route::post('/security/update', [AdminSecurityController::class, 'update'])->name('admin.security.update');
 
@@ -89,7 +72,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
     Route::get('/loader', [AdminLoaderController::class, 'index'])->name('admin.loader');
     Route::post('/loader/update', [AdminLoaderController::class, 'update'])->name('admin.loader.update');
-    Route::get('/loader/builds/', [AdminLoaderController::class, 'getForgeBuilds'])->name('admin.loader.builds');
+    Route::get('/loader/builds', [AdminLoaderController::class, 'getForgeBuilds'])->name('admin.loader.builds');
     Route::get('/loader/fabric-versions', [AdminLoaderController::class, 'getFabricVersions'])->name('admin.loader.fabric-versions');
 
     Route::get('/rpc', [AdminRpcController::class, 'show'])->name('admin.rpc');
@@ -111,19 +94,14 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
     Route::get('/update', [UpdateController::class, 'index'])->name('admin.update');
     Route::post('/update', [UpdateController::class, 'update'])->name('admin.update.run');
-
 });
 
-// Routes sans le préfixe 'admin'
-
-Route::get('/file-manager', function () {
-    return view('admin.file-manager');
-})->name('admin.file-manager')->middleware('auth');
+Route::get('/file-manager', [PanelController::class, 'fileManager'])->name('admin.file-manager')->middleware('auth');
 
 Route::prefix('utils')->group(function () {
     Route::get('/api', [ApiController::class, 'getOptions']);
     Route::get('/mods', [ModController::class, 'getMods']);
 });
-Route::get('/data', [FileController::class, 'getFiles']);
 
+Route::get('/data', [FileController::class, 'getFiles']);
 Route::get('lang/{locale}', [App\Http\Controllers\LanguageController::class, 'switch'])->name('lang.switch');

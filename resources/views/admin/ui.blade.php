@@ -1,89 +1,74 @@
 @extends('layouts.admin')
 
 @section('title', __('messages.ui.title'))
+@section('page-title', __('messages.ui.header'))
 
 @section('content')
-<div class="container-fluid px-4 py-3">
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form action="{{ route('admin.ui.update') }}" method="POST">
+            @csrf
 
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('messages.common.close') }}"></button>
-        </div>
-    @endif
-
-    <h2 class="mb-4 text-3xl font-bold">{{ __('messages.ui.header') }}</h2>
-
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
-            <form action="{{ route('admin.ui.update') }}" method="POST">
-                @csrf
-
-                {{-- Fieldset Alerte --}}
-                <fieldset class="mb-4">
-                    <legend class="fs-5 fw-bold mb-3">{{ __('messages.ui.alert_section') }}</legend>
-
-                    <div class="form-check form-switch mb-3">
-                        <input type="hidden" name="alert_activation" value="0">
-                        <input type="checkbox" id="alert_activation" name="alert_activation" class="form-check-input" value="1" {{ $uiOptions->alert_activation ? 'checked' : '' }}>
-                        <label for="alert_activation" class="form-check-label">{{ __('messages.ui.alert_enable') }}</label>
+            <div class="panel-muted-surface p-3 mb-4">
+                <h2 class="panel-section-title"><i class="bi bi-megaphone"></i>{{ __('messages.ui.alert_section') }}</h2>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="alert_activation" value="0">
+                            <input type="checkbox" id="alert_activation" name="alert_activation" class="form-check-input" value="1" {{ old('alert_activation', $uiOptions->alert_activation) ? 'checked' : '' }}>
+                            <label for="alert_activation" class="form-check-label">{{ __('messages.ui.alert_enable') }}</label>
+                        </div>
                     </div>
-
-                    <div class="form-check form-switch mb-3">
-                        <input type="hidden" name="alert_scroll" value="0">
-                        <input type="checkbox" id="alert_scroll" name="alert_scroll" class="form-check-input" value="1" {{ $uiOptions->alert_scroll ? 'checked' : '' }}>
-                        <label for="alert_scroll" class="form-check-label">{{ __('messages.ui.alert_scroll') }}</label>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="alert_scroll" value="0">
+                            <input type="checkbox" id="alert_scroll" name="alert_scroll" class="form-check-input" value="1" {{ old('alert_scroll', $uiOptions->alert_scroll) ? 'checked' : '' }}>
+                            <label for="alert_scroll" class="form-check-label">{{ __('messages.ui.alert_scroll') }}</label>
+                        </div>
                     </div>
-
-                    <div class="mb-3">
+                    <div class="col-12">
                         <label for="alert_msg" class="form-label">{{ __('messages.ui.alert_content') }}</label>
-                        <input type="text" class="form-control" id="alert_msg" name="alert_msg" value="{{ $uiOptions->alert_msg }}" required>
+                        <input type="text" class="form-control" id="alert_msg" name="alert_msg" value="{{ old('alert_msg', $uiOptions->alert_msg) }}" required>
                     </div>
-                </fieldset>
+                </div>
+            </div>
 
-                {{-- Fieldset Vidéo --}}
-                <fieldset class="mb-4">
-                    <legend class="fs-5 fw-bold mb-3">{{ __('messages.ui.video_section') }}</legend>
+            <div class="panel-muted-surface p-3 mb-4">
+                <h2 class="panel-section-title"><i class="bi bi-youtube"></i>{{ __('messages.ui.video_section') }}</h2>
+                <div class="form-check form-switch mb-3">
+                    <input type="hidden" name="video_activation" value="0">
+                    <input type="checkbox" id="video_activation" name="video_activation" class="form-check-input" value="1" {{ old('video_activation', $uiOptions->video_activation) ? 'checked' : '' }}>
+                    <label for="video_activation" class="form-check-label">{{ __('messages.ui.video_enable') }}</label>
+                </div>
+                <label for="video_url" class="form-label">{{ __('messages.ui.video_url') }}</label>
+                <input type="url" class="form-control" id="video_url" name="video_url" value="{{ old('video_url', $uiOptions->video_url) }}" required>
+            </div>
 
-                    <div class="form-check form-switch mb-3">
-                        <input type="hidden" name="video_activation" value="0">
-                        <input type="checkbox" id="video_activation" name="video_activation" class="form-check-input" value="1" {{ $uiOptions->video_activation ? 'checked' : '' }}>
-                        <label for="video_activation" class="form-check-label">{{ __('messages.ui.video_enable') }}</label>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="video_url" class="form-label">{{ __('messages.ui.video_url') }}</label>
-                        <input type="url" class="form-control" id="video_url" name="video_url" value="{{ $uiOptions->video_url }}" required>
-                    </div>
-                </fieldset>
-
-                {{-- Fieldset Splash --}}
-                <fieldset class="mb-4">
-                    <legend class="fs-5 fw-bold mb-3">{{ __('messages.ui.splash_section') }}</legend>
-
-                    <div class="mb-3">
+            <div class="panel-muted-surface p-3 mb-4">
+                <h2 class="panel-section-title"><i class="bi bi-chat-quote"></i>{{ __('messages.ui.splash_section') }}</h2>
+                <div class="row g-3">
+                    <div class="col-md-8">
                         <label for="splash" class="form-label">{{ __('messages.ui.splash_msg') }}</label>
-                        <input type="text" class="form-control" id="splash" name="splash" value="{{ $uiOptions->splash }}" required>
+                        <input type="text" class="form-control" id="splash" name="splash" value="{{ old('splash', $uiOptions->splash) }}" required>
                     </div>
-
-                    <div class="mb-3">
+                    <div class="col-md-4">
                         <label for="splash_author" class="form-label">{{ __('messages.ui.splash_author') }}</label>
-                        <input type="text" class="form-control" id="splash_author" name="splash_author" value="{{ $uiOptions->splash_author }}" required>
+                        <input type="text" class="form-control" id="splash_author" name="splash_author" value="{{ old('splash_author', $uiOptions->splash_author) }}" required>
                     </div>
-                </fieldset>
+                </div>
+            </div>
 
-                <fieldset class="mb-4">
-                    <legend class="fs-5 fw-bold mb-3">{{ __('messages.ui.color') }}</legend>
-                    <div class="mb-3">
-                        <label for="accent_color" class="form-label">{{ __('messages.ui.accent_color') }}</label>
-                        <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color" value="{{ $uiOptions->accent_color ?? '#FFA500' }}" required>
-                    </div>
-                </fieldset>
+            <div class="panel-muted-surface p-3 mb-4">
+                <h2 class="panel-section-title"><i class="bi bi-palette"></i>{{ __('messages.ui.color') }}</h2>
+                <label for="accent_color" class="form-label">{{ __('messages.ui.accent_color') }}</label>
+                <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color" value="{{ old('accent_color', $uiOptions->accent_color ?? '#FFA500') }}" required>
+            </div>
 
-                <button type="submit" class="btn btn-primary">{{ __('messages.common.update') }}</button>
-            </form>
-        </div>
+            <button type="submit" class="btn btn-primary btn-icon">
+                <i class="bi bi-save"></i>
+                {{ __('messages.common.update') }}
+            </button>
+        </form>
     </div>
-
 </div>
 @endsection

@@ -2,13 +2,13 @@
 
 namespace App\Request;
 
-use Illuminate\Support\Facades\Http;
 use App\Models\OptionsGeneral;
+use Illuminate\Support\Facades\Http;
 
 class AzuriomApi
 {
-    private $baseUrl;
-    private $apiKey;
+    private string $baseUrl;
+    private string $apiKey;
 
     public function __construct()
     {
@@ -25,13 +25,12 @@ class AzuriomApi
         $this->apiKey = $options->azuriom_api_key;
     }
 
-    private function makeRequest($endpoint)
+    private function makeRequest(string $endpoint)
     {
-        return Http::withOptions([
-            'verify' => false
-        ])->withHeaders([
-            'API-Key' => $this->apiKey
-        ])->get($this->baseUrl . $endpoint);
+        return Http::timeout(10)
+            ->withOptions(['verify' => config('services.http_verify_ssl', true)])
+            ->withHeaders(['API-Key' => $this->apiKey])
+            ->get($this->baseUrl . $endpoint);
     }
 
     public function getServers()
@@ -39,22 +38,18 @@ class AzuriomApi
         return $this->makeRequest('/api/apiextender/servers');
     }
 
-    public function getRoles()
+    public function getRoles(): array
     {
         $response = $this->makeRequest('/api/apiextender/roles');
-        if ($response->successful()) {
-            return $response->json();
-        }
-        return [];
+
+        return $response->successful() ? $response->json() : [];
     }
 
-    public function getUsers()
+    public function getUsers(): array
     {
         $response = $this->makeRequest('/api/apiextender/users');
-        if ($response->successful()) {
-            return $response->json();
-        }
-        return [];
+
+        return $response->successful() ? $response->json() : [];
     }
 
     public function getMoney()

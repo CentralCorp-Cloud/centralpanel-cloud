@@ -1,101 +1,113 @@
 @extends('layouts.admin')
 
 @section('title', __('messages.dashboard.title'))
-
 @section('page-title', __('messages.dashboard.welcome'))
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <!-- Statistiques -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ __('messages.dashboard.stats') }}</h5>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-0">{{ __('messages.dashboard.account_count') }}</h6>
-                            <h2 class="mb-0">{{ $userCount ?? 0 }}</h2>
+<div class="row g-4">
+    <div class="col-12 col-xl-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">
+                <h2 class="h5 mb-0">{{ __('messages.dashboard.stats_overview') }}</h2>
+            </div>
+            <div class="card-body dashboard-summary">
+                <div class="dashboard-primary-stat">
+                    <div>
+                        <p class="text-secondary mb-1">{{ __('messages.dashboard.account_count') }}</p>
+                        <div class="display-6 fw-bold">{{ $userCount ?? 0 }}</div>
+                    </div>
+                    <span class="panel-title-icon"><i class="bi bi-people"></i></span>
+                </div>
+
+                <div class="dashboard-stat-grid">
+                    @foreach(($stats['counts'] ?? []) as $stat)
+                        <div class="dashboard-stat-tile">
+                            <span class="dashboard-stat-icon"><i class="bi {{ $stat['icon'] }}"></i></span>
+                            <div>
+                                <div class="dashboard-stat-value">{{ $stat['value'] }}</div>
+                                <div class="dashboard-stat-label">{{ $stat['label'] }}</div>
+                            </div>
                         </div>
-                        <i class="fas fa-users fa-2x text-primary"></i>
+                    @endforeach
+                </div>
+
+                <div class="dashboard-status-panel">
+                    <div class="dashboard-status-title">{{ __('messages.dashboard.quick_status') }}</div>
+                    <div class="dashboard-status-list">
+                        @foreach(($stats['status'] ?? []) as $status)
+                            <div class="dashboard-status-row">
+                                <span>{{ $status['label'] }}</span>
+                                <span class="badge {{ $status['enabled'] ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                    {{ $status['enabled'] ? __('messages.common.enabled') : __('messages.common.disabled') }}
+                                </span>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Notes de version -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ __('messages.dashboard.release_notes') }}</h5>
-                    <div class="list-group">
-                        @if(isset($releases) && count($releases) > 0)
-                            @foreach($releases as $release)
-                                <div class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">
-                                            <a href="{{ $release->link }}" target="_blank" class="text-decoration-none">
-                                                {{ __('messages.dashboard.version') }} {{ $release->title }}
-                                            </a>
-                                        </h6>
-                                        <small class="text-muted">{{ $release->date }}</small>
-                                    </div>
-                                    <p class="mb-1">{{ $release->description }}</p>
+    <div class="col-12 col-xl-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">
+                <h2 class="h5 mb-0">{{ __('messages.dashboard.release_notes') }}</h2>
+            </div>
+            <div class="card-body">
+                @if(isset($releases) && count($releases) > 0)
+                    <div class="panel-list">
+                        @foreach($releases as $release)
+                            <a href="{{ $release->link }}" target="_blank" rel="noopener noreferrer" class="panel-list-item panel-list-link">
+                                <div class="d-flex w-100 justify-content-between gap-3">
+                                    <h3 class="h6 mb-1">{{ __('messages.dashboard.version') }} {{ $release->title }}</h3>
+                                    <small class="text-secondary text-nowrap">{{ $release->date }}</small>
                                 </div>
-                            @endforeach
-                        @else
-                            <p class="text-muted">{{ __('messages.dashboard.no_notes') }}</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Export/Import -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ __('messages.dashboard.export_import') }}</h5>
-                    <div class="d-flex flex-column gap-3">
-                        <div>
-                            <h6 class="mb-2">{{ __('messages.dashboard.export_settings') }}</h6>
-                            <p class="text-muted small mb-2">{{ __('messages.dashboard.export_desc') }}</p>
-                            <a href="{{ route('admin.settings.export') }}" class="btn btn-primary">
-                                <i class="fas fa-download me-2"></i>{{ __('messages.dashboard.export_btn') }}
+                                <p class="text-secondary small mb-0">{{ \Illuminate\Support\Str::limit($release->description, 220) }}</p>
                             </a>
-                        </div>
-                        <div>
-                            <h6 class="mb-2">{{ __('messages.dashboard.import_settings') }}</h6>
-                            <p class="text-muted small mb-2">{{ __('messages.dashboard.import_desc') }}</p>
-                            <form action="{{ route('admin.settings.import') }}" method="POST" enctype="multipart/form-data">
-                                @csrf
-                                <div class="input-group">
-                                    <input type="file" class="form-control" name="settings_file" accept=".centralcorp" required>
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="fas fa-upload me-2"></i>{{ __('messages.dashboard.import_btn') }}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="empty-state">
+                        <i class="bi bi-journal-text"></i>
+                        <span>{{ __('messages.dashboard.no_notes') }}</span>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h2 class="h5 mb-0">{{ __('messages.dashboard.export_import') }}</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-12 col-lg-5">
+                        <h3 class="h6">{{ __('messages.dashboard.export_settings') }}</h3>
+                        <p class="text-secondary small">{{ __('messages.dashboard.export_desc') }}</p>
+                        <a href="{{ route('admin.settings.export') }}" class="btn btn-primary btn-icon">
+                            <i class="bi bi-download"></i>
+                            {{ __('messages.dashboard.export_btn') }}
+                        </a>
+                    </div>
+                    <div class="col-12 col-lg-7">
+                        <h3 class="h6">{{ __('messages.dashboard.import_settings') }}</h3>
+                        <p class="text-secondary small">{{ __('messages.dashboard.import_desc') }}</p>
+                        <form action="{{ route('admin.settings.import') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="input-group">
+                                <input type="file" class="form-control" name="settings_file" accept=".centralcorp,.json" required>
+                                <button type="submit" class="btn btn-success btn-icon">
+                                    <i class="bi bi-upload"></i>
+                                    {{ __('messages.dashboard.import_btn') }}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show position-fixed bottom-0 end-0 m-3" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show position-fixed bottom-0 end-0 m-3" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
 @endsection
-

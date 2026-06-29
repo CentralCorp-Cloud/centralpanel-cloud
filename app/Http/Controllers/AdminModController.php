@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\OptionsMods;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class AdminModController extends Controller
@@ -11,11 +12,10 @@ class AdminModController extends Controller
     public function index(Request $request)
     {
         $modsDir = storage_path('app/public/data/mods');
-
-        $jarFiles = glob($modsDir . '/*.jar');
+        $jarFiles = is_dir($modsDir) ? glob($modsDir . '/*.jar') : [];
         $modsData = [];
 
-        foreach ($jarFiles as $index => $jarFile) {
+        foreach ($jarFiles ?: [] as $jarFile) {
             $modsData[] = [
                 'file' => basename($jarFile),
                 'name' => basename($jarFile),
@@ -24,19 +24,27 @@ class AdminModController extends Controller
                 'optional' => 0,
             ];
         }
-        $optionalMods = OptionsMods::where('optional', 1)->get();
-        $selectedModId = $request->input('selectedMod', null);
+
+        $optionalMods = OptionsMods::where('optional', true)->orderBy('name')->get();
+        $selectedModId = $request->input('selectedMod');
 
         return view('admin.mods', compact('modsData', 'optionalMods', 'selectedModId'));
     }
 
-
     public function updateOptionalMod(Request $request)
     {
-        $mod = OptionsMods::findOrFail($request->mod_id);
-        $mod->name = $request->optional_name;
-        $mod->description = $request->optional_description;
-        $mod->recommended = $request->has('optional_recommended') ? 1 : 0;
+        $validated = $request->validate([
+            'mod_id' => 'required|integer|exists:mods,id',
+            'optional_name' => 'required|string|max:255',
+            'optional_description' => 'nullable|string|max:2000',
+            'optional_recommended' => 'nullable|boolean',
+            'optional_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        $mod = OptionsMods::findOrFail($validated['mod_id']);
+        $mod->name = $validated['optional_name'];
+        $mod->description = $validated['optional_description'] ?? '';
+        $mod->recommended = $request->boolean('optional_recommended');
 
         if ($request->hasFile('optional_image')) {
             if ($mod->icon && Storage::disk('public')->exists($mod->icon)) {
@@ -46,14 +54,20 @@ class AdminModController extends Controller
         }
 
         $mod->save();
+        Cache::forget('launcher_optional_mods');
 
         return redirect()->back()->with('success', __('messages.flash.mod_updated'));
     }
+
     public function deleteOptionalMod($id)
     {
         try {
             $mod = OptionsMods::findOrFail($id);
+            if ($mod->icon && Storage::disk('public')->exists($mod->icon)) {
+                Storage::disk('public')->delete($mod->icon);
+            }
             $mod->delete();
+            Cache::forget('launcher_optional_mods');
 
             return redirect()->back()->with('success', __('messages.flash.mod_deleted'));
         } catch (\Exception $e) {
@@ -63,23 +77,33 @@ class AdminModController extends Controller
 
     public function addOptionalMod(Request $request)
     {
-        $mod = new OptionsMods();
-        $mod->file = $request->file;
-        $mod->name = $request->name;
-        $mod->description = $request->description;
-        $mod->optional = 1;
-        $mod->save();
+        $validated = $request->validate([
+            'file' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:2000',
+        ]);
+
+        OptionsMods::updateOrCreate(
+            ['file' => $validated['file']],
+            [
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? '',
+                'optional' => true,
+            ]
+        );
+
+        Cache::forget('launcher_optional_mods');
 
         return redirect()->back()->with('success', __('messages.flash.mod_added'));
     }
+
     public function getOptionalModDetails($id)
     {
         $mod = OptionsMods::find($id);
         if (!$mod) {
             return response()->json(['error' => __('messages.flash.mod_not_found')], 404);
         }
+
         return response()->json($mod);
     }
-
-
 }

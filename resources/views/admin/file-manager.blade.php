@@ -1,9 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Gestionnaire de fichiers')
+@section('title', __('messages.sidebar.file_manager'))
+@section('page-title', __('messages.sidebar.file_manager'))
 
 @section('content')
-    <h1>Gestionnaire de fichiers</h1>
-    <div id="fm" style="height: 700px;"></div>
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div id="fm" style="height: min(760px, calc(100vh - 210px));"></div>
+    </div>
+</div>
 @endsection
-
