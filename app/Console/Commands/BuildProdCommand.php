@@ -31,6 +31,7 @@ class BuildProdCommand extends Command
 
         try {
             $this->copyFiles($tempDir);
+            $this->sanitizeCompiledManifests($tempDir);
             $this->createStorageStructure($tempDir);
             $this->createTemporaryEnv($tempDir);
             $this->createBuildMetadata($tempDir, $version, $commit);
@@ -77,7 +78,9 @@ class BuildProdCommand extends Command
             '*.zip',
             'auth.json',
             '.phpunit.result.cache',
-            'bootstrap/cache/*.php',
+            'bootstrap/cache/config.php',
+            'bootstrap/cache/events.php',
+            'bootstrap/cache/routes*.php',
             'database/database.sqlite',
             'node_modules',
             'phpunit.xml',
@@ -158,8 +161,118 @@ class BuildProdCommand extends Command
         ] as $directory) {
             $path = $tempDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $directory);
             File::ensureDirectoryExists($path, 0755, true);
-            File::put($path . DIRECTORY_SEPARATOR . '.gitkeep', '');
+
+            if (!File::exists($path . DIRECTORY_SEPARATOR . '.gitkeep')) {
+                File::put($path . DIRECTORY_SEPARATOR . '.gitkeep', '');
+            }
         }
+    }
+
+    private function sanitizeCompiledManifests(string $tempDir): void
+    {
+        $cachePath = $tempDir . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . 'cache';
+        $packagesPath = $cachePath . DIRECTORY_SEPARATOR . 'packages.php';
+        $servicesPath = $cachePath . DIRECTORY_SEPARATOR . 'services.php';
+        $productionPackages = $this->productionPackageNames();
+
+        foreach (glob($cachePath . DIRECTORY_SEPARATOR . '{config,events,routes,routes-v7}.php', GLOB_BRACE) ?: [] as $compiledFile) {
+            File::delete($compiledFile);
+        }
+
+        if (!$productionPackages || !File::exists($packagesPath)) {
+            return;
+        }
+
+        $packages = require $packagesPath;
+        if (!is_array($packages)) {
+            File::delete($packagesPath);
+            File::delete($servicesPath);
+            return;
+        }
+
+        $removedProviders = [];
+        foreach ($packages as $packageName => $definition) {
+            if (isset($productionPackages[$packageName])) {
+                continue;
+            }
+
+            foreach ($definition['providers'] ?? [] as $provider) {
+                $removedProviders[] = $provider;
+            }
+
+            unset($packages[$packageName]);
+        }
+
+        File::put($packagesPath, $this->phpArrayFile($packages));
+
+        if ($removedProviders && File::exists($servicesPath)) {
+            $this->removeProvidersFromServicesManifest($servicesPath, array_unique($removedProviders));
+        }
+    }
+
+    private function productionPackageNames(): array
+    {
+        $lockPath = base_path('composer.lock');
+
+        if (!File::exists($lockPath)) {
+            return [];
+        }
+
+        $lock = json_decode(File::get($lockPath), true);
+        if (!is_array($lock)) {
+            return [];
+        }
+
+        $names = [];
+        foreach ($lock['packages'] ?? [] as $package) {
+            if (isset($package['name'])) {
+                $names[$package['name']] = true;
+            }
+        }
+
+        return $names;
+    }
+
+    private function removeProvidersFromServicesManifest(string $servicesPath, array $removedProviders): void
+    {
+        $services = require $servicesPath;
+        if (!is_array($services)) {
+            File::delete($servicesPath);
+            return;
+        }
+
+        $remove = array_flip($removedProviders);
+
+        foreach (['providers', 'eager'] as $key) {
+            if (isset($services[$key]) && is_array($services[$key])) {
+                $services[$key] = array_values(array_filter(
+                    $services[$key],
+                    fn (string $provider): bool => !isset($remove[$provider])
+                ));
+            }
+        }
+
+        if (isset($services['deferred']) && is_array($services['deferred'])) {
+            $services['deferred'] = array_filter(
+                $services['deferred'],
+                fn (string $provider): bool => !isset($remove[$provider])
+            );
+        }
+
+        if (isset($services['when']) && is_array($services['when'])) {
+            foreach (array_keys($services['when']) as $provider) {
+                if (isset($remove[$provider])) {
+                    unset($services['when'][$provider]);
+                }
+            }
+        }
+
+        File::put($servicesPath, $this->phpArrayFile($services));
+    }
+
+    private function phpArrayFile(array $data): string
+    {
+        return '<?php return ' . var_export($data, true) . ';' . PHP_EOL;
     }
 
     private function createTemporaryEnv(string $tempDir): void

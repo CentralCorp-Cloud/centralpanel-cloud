@@ -37,6 +37,10 @@ class UpdateManager
         'bootstrap/cache/*.php',
     ];
 
+    private const BOOTSTRAP_CACHE_PATTERNS = [
+        'bootstrap/cache/*.php',
+    ];
+
     protected Filesystem $files;
     protected string $repository;
     protected string $apiUrl;
@@ -141,6 +145,7 @@ class UpdateManager
         }
 
         $this->validateArchive($zipPath);
+        $this->purgeCompiledCaches();
 
         $stagingPath = storage_path('app/update-staging-' . uniqid('', true));
         $this->ensureDirectory($stagingPath);
@@ -159,10 +164,12 @@ class UpdateManager
 
             $packageRoot = $this->locatePackageRoot($stagingPath);
             $this->copyPackageFiles($packageRoot, base_path());
+            $this->purgeCompiledCaches();
             $this->files->delete($zipPath);
 
             Artisan::call('migrate', ['--force' => true]);
             $this->clearCaches();
+            $this->purgeCompiledCaches();
         } finally {
             if ($this->files->exists($stagingPath)) {
                 $this->files->deleteDirectory($stagingPath);
@@ -352,7 +359,7 @@ class UpdateManager
 
     private function clearCaches(): void
     {
-        foreach (['config:clear', 'route:clear', 'view:clear', 'cache:clear'] as $command) {
+        foreach (['optimize:clear', 'config:clear', 'route:clear', 'view:clear', 'cache:clear'] as $command) {
             try {
                 Artisan::call($command);
             } catch (\Throwable $e) {
@@ -365,6 +372,17 @@ class UpdateManager
     {
         if (!$this->files->exists($path)) {
             $this->files->makeDirectory($path, 0755, true);
+        }
+    }
+
+    private function purgeCompiledCaches(): void
+    {
+        foreach (self::BOOTSTRAP_CACHE_PATTERNS as $pattern) {
+            foreach (glob(base_path($pattern)) ?: [] as $file) {
+                if (is_file($file)) {
+                    $this->files->delete($file);
+                }
+            }
         }
     }
 }
