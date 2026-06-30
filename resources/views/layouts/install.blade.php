@@ -6,7 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', __('messages.install.title'))</title>
 
-    @php($assetVersion = rawurlencode(\App\Support\PanelVersion::current()))
+    @php
+        $assetVersion = rawurlencode(\App\Support\PanelVersion::current());
+    @endphp
 
     <script>
         (function() {
