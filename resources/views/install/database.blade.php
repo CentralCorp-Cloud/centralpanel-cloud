@@ -85,7 +85,7 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('assets/js/panel.js') }}"></script>
+<script src="{{ asset('assets/js/panel.js') }}?v={{ rawurlencode(\App\Support\PanelVersion::current()) }}"></script>
 <script>
     const typeSelect = document.getElementById('type');
     const dbConfig = document.getElementById('database-config');

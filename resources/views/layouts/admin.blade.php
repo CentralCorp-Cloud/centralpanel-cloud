@@ -8,6 +8,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'CentralCorp Panel'))</title>
 
+    @php($assetVersion = rawurlencode(\App\Support\PanelVersion::current()))
+
     <script>
         (function() {
             document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'light');
@@ -16,10 +18,10 @@
 
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{{ asset('assets/vendor/admin.css') }}">
-    <link id="file-manager-css" rel="stylesheet" href="{{ asset('vendor/file-manager/css/file-manager.css') }}">
-    <link id="file-manager-dark-css" rel="stylesheet" href="{{ asset('vendor/file-manager/css/file-manager-dark.css') }}" disabled>
-    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendor/admin.css') }}?v={{ $assetVersion }}">
+    <link id="file-manager-css" rel="stylesheet" href="{{ asset('vendor/file-manager/css/file-manager.css') }}?v={{ $assetVersion }}">
+    <link id="file-manager-dark-css" rel="stylesheet" href="{{ asset('vendor/file-manager/css/file-manager-dark.css') }}?v={{ $assetVersion }}" disabled>
+    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v={{ $assetVersion }}">
     @stack('styles')
 </head>
 
@@ -58,7 +60,7 @@
     <nav id="sidebar" class="sidebar js-sidebar">
         <div class="sidebar-content js-simplebar">
             <a class="sidebar-brand text-white" href="{{ route('admin.index') }}" aria-label="{{ config('app.name', 'CentralCorp Panel') }}">
-                <img src="{{ asset('assets/img/logo.png') }}" alt="{{ config('app.name', 'CentralCorp Panel') }}" class="sidebar-brand-img">
+                <img src="{{ asset('assets/img/logo.png') }}?v={{ $assetVersion }}" alt="{{ config('app.name', 'CentralCorp Panel') }}" class="sidebar-brand-img">
             </a>
 
             <ul class="sidebar-nav">
@@ -156,10 +158,10 @@
     </div>
 </div>
 
-<script src="{{ asset('assets/vendor/admin.js') }}"></script>
-<script src="{{ asset('vendor/file-manager/js/file-manager.js') }}"></script>
+<script src="{{ asset('assets/vendor/admin.js') }}?v={{ $assetVersion }}"></script>
+<script src="{{ asset('vendor/file-manager/js/file-manager.js') }}?v={{ $assetVersion }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ asset('assets/js/panel.js') }}"></script>
+<script src="{{ asset('assets/js/panel.js') }}?v={{ $assetVersion }}"></script>
 @stack('scripts')
 @yield('scripts')
 </body>
