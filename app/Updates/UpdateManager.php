@@ -3,9 +3,13 @@
 namespace App\Updates;
 
 use App\Http\Controllers\InstallController;
+use App\Support\DatabasePath;
+use App\Support\DotenvEditor;
 use App\Support\PanelVersion;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -146,6 +150,7 @@ class UpdateManager
 
         $this->validateArchive($zipPath);
         $this->purgeCompiledCaches();
+        $this->prepareDatabaseForMigration();
 
         $stagingPath = storage_path('app/update-staging-' . uniqid('', true));
         $this->ensureDirectory($stagingPath);
@@ -165,6 +170,7 @@ class UpdateManager
             $packageRoot = $this->locatePackageRoot($stagingPath);
             $this->copyPackageFiles($packageRoot, base_path());
             $this->purgeCompiledCaches();
+            $this->prepareDatabaseForMigration();
             $this->files->delete($zipPath);
 
             Artisan::call('migrate', ['--force' => true]);
@@ -383,6 +389,25 @@ class UpdateManager
                     $this->files->delete($file);
                 }
             }
+        }
+    }
+
+    private function prepareDatabaseForMigration(): void
+    {
+        if (config('database.default') !== 'sqlite') {
+            return;
+        }
+
+        $database = DatabasePath::ensureSqliteFile(config('database.connections.sqlite.database'));
+
+        Config::set('database.connections.sqlite.database', $database);
+        DB::purge('sqlite');
+
+        if ($this->files->exists(base_path('.env'))) {
+            DotenvEditor::updateFile(base_path('.env'), [
+                'DB_CONNECTION' => 'sqlite',
+                'DB_DATABASE' => DotenvEditor::normalizePath($database),
+            ]);
         }
     }
 }
