@@ -45,6 +45,10 @@ class UpdateManager
         'bootstrap/cache/*.php',
     ];
 
+    private const VIEW_CACHE_PATTERNS = [
+        'storage/framework/views/*.php',
+    ];
+
     protected Filesystem $files;
     protected string $repository;
     protected string $apiUrl;
@@ -149,7 +153,7 @@ class UpdateManager
         }
 
         $this->validateArchive($zipPath);
-        $this->purgeCompiledCaches();
+        $this->purgeRuntimeCaches();
         $this->prepareDatabaseForMigration();
 
         $stagingPath = storage_path('app/update-staging-' . uniqid('', true));
@@ -169,13 +173,13 @@ class UpdateManager
 
             $packageRoot = $this->locatePackageRoot($stagingPath);
             $this->copyPackageFiles($packageRoot, base_path());
-            $this->purgeCompiledCaches();
+            $this->purgeRuntimeCaches();
             $this->prepareDatabaseForMigration();
             $this->files->delete($zipPath);
 
             Artisan::call('migrate', ['--force' => true]);
             $this->clearCaches();
-            $this->purgeCompiledCaches();
+            $this->purgeRuntimeCaches();
         } finally {
             if ($this->files->exists($stagingPath)) {
                 $this->files->deleteDirectory($stagingPath);
@@ -390,6 +394,23 @@ class UpdateManager
                 }
             }
         }
+    }
+
+    private function purgeCompiledViews(): void
+    {
+        foreach (self::VIEW_CACHE_PATTERNS as $pattern) {
+            foreach (glob(base_path($pattern)) ?: [] as $file) {
+                if (is_file($file)) {
+                    $this->files->delete($file);
+                }
+            }
+        }
+    }
+
+    private function purgeRuntimeCaches(): void
+    {
+        $this->purgeCompiledCaches();
+        $this->purgeCompiledViews();
     }
 
     private function prepareDatabaseForMigration(): void
