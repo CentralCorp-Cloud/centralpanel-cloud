@@ -60,7 +60,9 @@
                             <a href="{{ $release->link }}" target="_blank" rel="noopener noreferrer" class="panel-list-item panel-list-link">
                                 <div class="d-flex w-100 justify-content-between gap-3">
                                     <h3 class="h6 mb-1">{{ __('messages.dashboard.version') }} {{ $release->title }}</h3>
-                                    <small class="text-secondary text-nowrap">{{ $release->date }}</small>
+                                    @if($release->date)
+                                        <small class="text-secondary text-nowrap">{{ $release->date }}</small>
+                                    @endif
                                 </div>
                                 <p class="text-secondary small mb-0">{{ \Illuminate\Support\Str::limit($release->description, 220) }}</p>
                             </a>
