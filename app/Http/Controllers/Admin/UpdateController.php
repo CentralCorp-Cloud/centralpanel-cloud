@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\PanelCache;
 use App\Support\PanelVersion;
 use App\Updates\UpdateManager;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UpdateController extends Controller
 {
@@ -37,5 +39,23 @@ class UpdateController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', __('messages.flash.update_error') . ' ' . $e->getMessage());
         }
+    }
+
+    public function clearCache(Request $request)
+    {
+        $validated = $request->validate([
+            'target' => ['required', Rule::in(['all', 'application', 'bootstrap', 'views'])],
+        ]);
+
+        $results = match ($validated['target']) {
+            'application' => PanelCache::clearApplication(),
+            'bootstrap' => PanelCache::clearBootstrap(),
+            'views' => PanelCache::clearViews(),
+            default => PanelCache::clearAll(),
+        };
+
+        return redirect()
+            ->back()
+            ->with('success', __('messages.flash.cache_cleared', ['count' => count($results)]));
     }
 }

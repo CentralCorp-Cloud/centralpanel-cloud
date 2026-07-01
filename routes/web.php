@@ -94,6 +94,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
     Route::get('/update', [UpdateController::class, 'index'])->name('admin.update');
     Route::post('/update', [UpdateController::class, 'update'])->name('admin.update.run');
+    Route::post('/update/cache', [UpdateController::class, 'clearCache'])->name('admin.update.cache');
 });
 
 Route::get('/file-manager', [PanelController::class, 'fileManager'])->name('admin.file-manager')->middleware('auth');

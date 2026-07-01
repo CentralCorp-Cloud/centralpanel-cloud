@@ -92,8 +92,10 @@ class DashboardController extends Controller
                     return [];
                 }
 
+                $entries = iterator_to_array($xml->entry);
                 $releases = [];
-                foreach ($xml->entry as $entry) {
+
+                foreach (array_slice($entries, 0, 12) as $entry) {
                     $releases[] = (object) [
                         'title' => (string) $entry->title,
                         'description' => strip_tags((string) $entry->content),

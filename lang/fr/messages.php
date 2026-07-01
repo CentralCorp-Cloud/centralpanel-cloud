@@ -250,6 +250,12 @@ return [
         'unable_fetch' => 'Impossible de récupérer les informations de mise à jour.',
         'update_now' => 'Mettre à jour maintenant',
         'no_update' => 'Aucune mise à jour disponible.',
+        'cache_title' => 'Maintenance des caches',
+        'cache_description' => 'Nettoyez les caches Laravel si une page garde une ancienne vue, une ancienne config ou un ancien fichier compilé.',
+        'cache_all' => 'Tout nettoyer',
+        'cache_views' => 'Vues compilées',
+        'cache_bootstrap' => 'Cache bootstrap',
+        'cache_application' => 'Cache application',
     ],
     'users' => [
         'title' => 'Gestion des Utilisateurs',
@@ -365,5 +371,6 @@ return [
         'update_success' => 'Mise à jour installée avec succès.',
         'update_none' => 'Aucune mise à jour disponible.',
         'update_error' => 'Erreur lors de la mise à jour :',
+        'cache_cleared' => 'Caches nettoyés (:count élément(s)).',
     ],
 ];

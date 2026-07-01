@@ -325,6 +325,12 @@ body {
     justify-content: space-between;
 }
 
+.dashboard-release-list {
+    max-height: 22rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
 .role-bg-card {
     min-height: 28rem;
 }

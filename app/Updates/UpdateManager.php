@@ -5,6 +5,7 @@ namespace App\Updates;
 use App\Http\Controllers\InstallController;
 use App\Support\DatabasePath;
 use App\Support\DotenvEditor;
+use App\Support\PanelCache;
 use App\Support\PanelVersion;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Artisan;
@@ -39,14 +40,6 @@ class UpdateManager
         'storage/installed',
         'storage/logs/*',
         'bootstrap/cache/*.php',
-    ];
-
-    private const BOOTSTRAP_CACHE_PATTERNS = [
-        'bootstrap/cache/*.php',
-    ];
-
-    private const VIEW_CACHE_PATTERNS = [
-        'storage/framework/views/*.php',
     ];
 
     protected Filesystem $files;
@@ -369,13 +362,7 @@ class UpdateManager
 
     private function clearCaches(): void
     {
-        foreach (['optimize:clear', 'config:clear', 'route:clear', 'view:clear', 'cache:clear'] as $command) {
-            try {
-                Artisan::call($command);
-            } catch (\Throwable $e) {
-                Log::warning("Unable to run {$command} after update", ['error' => $e->getMessage()]);
-            }
-        }
+        PanelCache::clearAll();
     }
 
     private function ensureDirectory(string $path): void
@@ -387,30 +374,12 @@ class UpdateManager
 
     private function purgeCompiledCaches(): void
     {
-        foreach (self::BOOTSTRAP_CACHE_PATTERNS as $pattern) {
-            foreach (glob(base_path($pattern)) ?: [] as $file) {
-                if (is_file($file)) {
-                    $this->files->delete($file);
-                }
-            }
-        }
-    }
-
-    private function purgeCompiledViews(): void
-    {
-        foreach (self::VIEW_CACHE_PATTERNS as $pattern) {
-            foreach (glob(base_path($pattern)) ?: [] as $file) {
-                if (is_file($file)) {
-                    $this->files->delete($file);
-                }
-            }
-        }
+        PanelCache::clearBootstrap();
     }
 
     private function purgeRuntimeCaches(): void
     {
-        $this->purgeCompiledCaches();
-        $this->purgeCompiledViews();
+        PanelCache::clearRuntimeFiles();
     }
 
     private function prepareDatabaseForMigration(): void

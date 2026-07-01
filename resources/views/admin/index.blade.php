@@ -55,7 +55,7 @@
             </div>
             <div class="card-body">
                 @if(isset($releases) && count($releases) > 0)
-                    <div class="panel-list">
+                    <div class="panel-list dashboard-release-list">
                         @foreach($releases as $release)
                             <a href="{{ $release->link }}" target="_blank" rel="noopener noreferrer" class="panel-list-item panel-list-link">
                                 <div class="d-flex w-100 justify-content-between gap-3">

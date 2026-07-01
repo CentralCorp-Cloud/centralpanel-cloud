@@ -250,6 +250,12 @@ return [
         'unable_fetch' => 'Unable to fetch update information.',
         'update_now' => 'Update Now',
         'no_update' => 'No update available.',
+        'cache_title' => 'Cache maintenance',
+        'cache_description' => 'Clear Laravel caches when a page keeps an old view, old config, or stale compiled file.',
+        'cache_all' => 'Clear all',
+        'cache_views' => 'Compiled views',
+        'cache_bootstrap' => 'Bootstrap cache',
+        'cache_application' => 'Application cache',
     ],
     'users' => [
         'title' => 'User Management',
@@ -365,5 +371,6 @@ return [
         'update_success' => 'Update installed successfully.',
         'update_none' => 'No update available.',
         'update_error' => 'Error during update:',
+        'cache_cleared' => 'Caches cleared (:count item(s)).',
     ],
 ];
