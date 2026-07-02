@@ -6,6 +6,7 @@ use App\Http\Controllers\InstallController;
 use App\Support\DatabasePath;
 use App\Support\DotenvEditor;
 use App\Support\PanelCache;
+use App\Support\PanelUpdateCacheGuard;
 use App\Support\PanelVersion;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Artisan;
@@ -172,6 +173,7 @@ class UpdateManager
 
             Artisan::call('migrate', ['--force' => true]);
             $this->clearCaches();
+            PanelUpdateCacheGuard::ensureFreshForCurrentVersion();
             $this->purgeRuntimeCaches();
         } finally {
             if ($this->files->exists($stagingPath)) {

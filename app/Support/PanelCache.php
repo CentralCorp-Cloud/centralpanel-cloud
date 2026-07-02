@@ -32,9 +32,7 @@ final class PanelCache
     {
         return array_merge(
             self::runCommands(['view:clear']),
-            self::deletePatterns([
-                storage_path('framework/views/*.php'),
-            ])
+            self::clearCompiledViews()
         );
     }
 
@@ -42,6 +40,13 @@ final class PanelCache
     {
         return self::deletePatterns([
             base_path('bootstrap/cache/*.php'),
+            storage_path('framework/views/*.php'),
+        ]);
+    }
+
+    public static function clearCompiledViews(): array
+    {
+        return self::deletePatterns([
             storage_path('framework/views/*.php'),
         ]);
     }
