@@ -60,7 +60,7 @@
                 'application' => ['icon' => 'bi-database-x', 'label' => __('messages.update_page.cache_application')],
             ] as $target => $cacheAction)
                 <div class="col-12 col-md-6 col-xl-3">
-                    <form method="POST" action="{{ route('admin.update.cache') }}" data-loading-label="{{ __('messages.common.loading') }}">
+                    <form method="POST" action="{{ \Illuminate\Support\Facades\Route::has('admin.update.cache') ? route('admin.update.cache') : url('/admin/update/cache') }}" data-loading-label="{{ __('messages.common.loading') }}">
                         @csrf
                         <input type="hidden" name="target" value="{{ $target }}">
                         <button type="submit" class="btn btn-outline-primary btn-icon w-100">

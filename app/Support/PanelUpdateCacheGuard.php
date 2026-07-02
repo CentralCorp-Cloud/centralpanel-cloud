@@ -22,7 +22,7 @@ final class PanelUpdateCacheGuard
             return [];
         }
 
-        $cleared = PanelCache::clearCompiledViews();
+        $cleared = PanelCache::clearRuntimeFiles();
         self::storeVersion($version);
 
         return $cleared;
