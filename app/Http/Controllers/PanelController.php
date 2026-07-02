@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PanelInstallation;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 
 class PanelController extends Controller
 {
     public function root()
     {
-        $isInstalled = File::exists(storage_path('installed'));
-        $hasRealKey = config('app.key') !== InstallController::TEMP_KEY;
-
-        if (!$isInstalled || !$hasRealKey) {
+        if (!PanelInstallation::ensureInstalledState()) {
             return redirect()->route('install.database');
         }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Support\DotenvEditor;
+use App\Support\PanelInstallation;
 use Exception;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ use Throwable;
 
 class InstallController extends Controller
 {
-    public const TEMP_KEY = 'base64:hmU1T3OuvHdi5t1wULI8Xp7geI+JIWGog9pBCNxslY8=';
+    public const TEMP_KEY = PanelInstallation::TEMP_KEY;
 
     public const MIN_PHP_VERSION = '8.1';
 
@@ -52,18 +53,9 @@ class InstallController extends Controller
         $this->hasRequirements = !in_array(false, $this->requirements, true);
 
         $this->middleware(function (Request $request, callable $next) {
-            $isInstalled = File::exists(storage_path('installed'));
-            $hasRealKey = config('app.key') !== self::TEMP_KEY;
-
-            // L'application est considérée comme installée si le fichier installed existe
-            // ET que la clé n'est plus temporaire
-            if ($isInstalled && $hasRealKey) {
+            if (PanelInstallation::ensureInstalledState()) {
                 return redirect('/')->with('error', __('messages.install.already_installed'));
             }
-
-            // Si seulement une des conditions est vraie, il y a un état incohérent
-            // On permet l'accès aux routes d'installation pour corriger
-            // (ex: fichier installed existe mais clé temporaire, ou vice versa)
 
             return $next($request);
         });
@@ -356,7 +348,7 @@ class InstallController extends Controller
             $correctUrl = $this->getCorrectAppUrl();
             Config::set('app.url', $correctUrl);
 
-            $this->writeEnvironmentAfterResponse($this->buildFinalEnvValues(
+            $this->writeEnvironment($this->buildFinalEnvValues(
                 $databaseEnvValues,
                 $this->makeAppKey(),
                 $correctUrl
@@ -371,7 +363,7 @@ class InstallController extends Controller
     public function finish()
     {
         try {
-            if (!File::exists(storage_path('installed'))) {
+            if (!PanelInstallation::ensureInstalledState()) {
                 return redirect()->route('install.database');
             }
 
@@ -419,11 +411,9 @@ class InstallController extends Controller
         ]);
     }
 
-    private function writeEnvironmentAfterResponse(array $values): void
+    private function writeEnvironment(array $values): void
     {
-        app()->terminating(function () use ($values): void {
-            DotenvEditor::updateFile(base_path('.env'), $values);
-        });
+        DotenvEditor::updateFile(base_path('.env'), $values);
     }
 
     public static function getRequirements(): array

@@ -2,10 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use App\Http\Controllers\InstallController;
+use App\Support\PanelInstallation;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsurePanelInstalled
@@ -21,8 +20,7 @@ class EnsurePanelInstalled
 
     private function isInstalled(): bool
     {
-        return File::exists(storage_path('installed'))
-            && config('app.key') !== InstallController::TEMP_KEY;
+        return PanelInstallation::ensureInstalledState();
     }
 
     private function shouldBypass(Request $request): bool
