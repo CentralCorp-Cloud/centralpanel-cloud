@@ -29,7 +29,7 @@ class AdminUIController extends Controller
                 'max:255',
                 function (string $attribute, mixed $value, \Closure $fail) {
                     if (YouTube::videoId((string) $value) === null) {
-                        $fail('L’URL doit correspondre à une vidéo YouTube valide.');
+                        $fail(__('messages.instances.errors.invalid_youtube_url'));
                     }
                 },
             ],

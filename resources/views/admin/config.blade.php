@@ -46,13 +46,13 @@
                 <div class="mb-3">
                     <label for="azuriom_url" class="form-label">{{ __('messages.config.azuriom_url') }}</label>
                     <input type="url" class="form-control" id="azuriom_url" name="azuriom_url"
-                           placeholder="https://votre-site.azuriom.com"
+                           placeholder="{{ __('messages.config.azuriom_url_placeholder') }}"
                            value="{{ old('azuriom_url', $options->azuriom_url ?? '') }}">
                 </div>
                 <div>
                     <label for="azuriom_api_key" class="form-label">{{ __('messages.config.azuriom_api_key') }}</label>
                     <input type="text" class="form-control" id="azuriom_api_key" name="azuriom_api_key"
-                           placeholder="Votre clé API Azuriom"
+                           placeholder="{{ __('messages.config.azuriom_api_key') }}"
                            value="{{ old('azuriom_api_key', $options->azuriom_api_key ?? '') }}">
                     <div class="form-text">{{ __('messages.config.api_key_desc') }}</div>
                 </div>

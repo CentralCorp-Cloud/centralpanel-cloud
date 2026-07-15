@@ -45,7 +45,7 @@ class AdminImportExportController extends Controller
             $config = json_decode($json, true);
 
             if (!$config) {
-                throw new \Exception('Format de fichier invalide');
+                throw new \Exception(__('messages.settings_import.invalid_format'));
             }
 
             // Démarrer une transaction

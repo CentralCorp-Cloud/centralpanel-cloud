@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Dossiers ignorés - ' . $instance->display_name)
-@section('page-title', 'Dossiers ignorés : ' . $instance->display_name)
+@section('title', __('messages.instances.ignore.title', ['name' => $instance->display_name]))
+@section('page-title', __('messages.instances.ignore.header', ['name' => $instance->display_name]))
 
 @section('content')
     @if (session('success'))
@@ -13,7 +13,7 @@
 
     <div class="mb-3">
         <a href="{{ route('admin.instances.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i> Retour aux instances
+            <i class="bi bi-arrow-left me-1"></i> {{ __('messages.instances.back') }}
         </a>
     </div>
 
@@ -22,9 +22,9 @@
             <form action="{{ route('admin.instances.ignore.store', $instance->id) }}" method="POST" class="mb-3">
                 @csrf
                 <div class="input-group">
-                    <input type="text" class="form-control" name="folder_name" placeholder="Nom du dossier à ignorer"
+                    <input type="text" class="form-control" name="folder_name" placeholder="{{ __('messages.instances.ignore.placeholder') }}"
                         required>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus"></i> Ajouter</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus"></i> {{ __('messages.instances.ignore.add') }}</button>
                 </div>
             </form>
             <ul class="list-group">
@@ -38,7 +38,7 @@
                         </form>
                     </li>
                 @empty
-                    <li class="list-group-item text-muted">Aucun dossier ignoré</li>
+                    <li class="list-group-item text-muted">{{ __('messages.instances.ignore.none') }}</li>
                 @endforelse
             </ul>
         </div>

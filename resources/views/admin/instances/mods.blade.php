@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Mods - ' . $instance->display_name)
-@section('page-title', 'Mods optionnels : ' . $instance->display_name)
+@section('title', __('messages.instances.mods.title', ['name' => $instance->display_name]))
+@section('page-title', __('messages.instances.mods.header', ['name' => $instance->display_name]))
 
 @section('content')
     @if (session('success'))
@@ -13,7 +13,7 @@
 
     <div class="mb-3">
         <a href="{{ route('admin.instances.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i> Retour aux instances
+            <i class="bi bi-arrow-left me-1"></i> {{ __('messages.instances.back') }}
         </a>
     </div>
 
@@ -22,7 +22,7 @@
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">Fichiers JAR disponibles</h5>
+                    <h5 class="mb-0">{{ __('messages.instances.mods.available_jars') }}</h5>
                 </div>
                 <div class="card-body">
                     @if (count($modsData) > 0)
@@ -30,8 +30,8 @@
                             <table class="table table-sm align-middle">
                                 <thead>
                                     <tr>
-                                        <th>Fichier</th>
-                                        <th>Action</th>
+                                        <th>{{ __('messages.instances.mods.file') }}</th>
+                                        <th>{{ __('messages.instances.mods.action') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -41,7 +41,7 @@
                                             <td>
                                                 <button type="button" class="btn btn-sm btn-outline-primary"
                                                     onclick="openModForm('{{ $mod['file'] }}', '{{ addslashes($mod['name']) }}')">
-                                                    <i class="bi bi-plus"></i> Optionnel
+                                                    <i class="bi bi-plus"></i> {{ __('messages.instances.mods.optional') }}
                                                 </button>
                                             </td>
                                         </tr>
@@ -50,7 +50,7 @@
                             </table>
                         </div>
                     @else
-                        <p class="text-muted">Aucun fichier JAR trouvé dans
+                        <p class="text-muted">{{ __('messages.instances.mods.no_jar') }}
                             <code>storage/app/public/data/{{ $instance->name }}/mods/</code>
                         </p>
                     @endif
@@ -60,7 +60,7 @@
             {{-- Add mod form (appears when clicking "+ Optionnel") --}}
             <div class="card shadow-sm mt-3" id="mod-add-card" style="display: none;">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Configurer le mod optionnel</h5>
+                    <h5 class="mb-0">{{ __('messages.instances.mods.configure') }}</h5>
                     <button type="button" class="btn-close" onclick="closeModForm()"></button>
                 </div>
                 <div class="card-body">
@@ -70,32 +70,32 @@
                         <input type="hidden" name="file" id="mod-file">
 
                         <div class="mb-3">
-                            <label for="mod-name" class="form-label">Nom d'affichage</label>
+                            <label for="mod-name" class="form-label">{{ __('messages.instances.mods.display_name') }}</label>
                             <input type="text" class="form-control" id="mod-name" name="name" required
-                                placeholder="Ex: OptiFine, Sodium...">
+                                placeholder="{{ __('messages.instances.mods.name_placeholder') }}">
                         </div>
 
                         <div class="mb-3">
-                            <label for="mod-description" class="form-label">Description</label>
+                            <label for="mod-description" class="form-label">{{ __('messages.instances.mods.description') }}</label>
                             <textarea class="form-control" id="mod-description" name="description" rows="2"
-                                placeholder="Description courte du mod..."></textarea>
+                                placeholder="{{ __('messages.instances.mods.description_placeholder') }}"></textarea>
                         </div>
 
                         <div class="mb-3">
-                            <label for="mod-icon" class="form-label">Icône (optionnel)</label>
+                            <label for="mod-icon" class="form-label">{{ __('messages.instances.mods.icon_optional') }}</label>
                             <input type="file" class="form-control" id="mod-icon" name="icon_file" accept="image/*">
-                            <div class="form-text">Image carrée recommandée (64×64 ou 128×128)</div>
+                            <div class="form-text">{{ __('messages.instances.mods.icon_help') }}</div>
                         </div>
 
                         <div class="mb-3 form-check form-switch">
                             <input type="checkbox" class="form-check-input" id="mod-recommended" name="recommended"
                                 value="1">
-                            <label class="form-check-label" for="mod-recommended">Recommandé</label>
+                            <label class="form-check-label" for="mod-recommended">{{ __('messages.instances.mods.recommended') }}</label>
                         </div>
 
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-plus-circle me-1"></i> Ajouter comme optionnel
+                                <i class="bi bi-plus-circle me-1"></i> {{ __('messages.instances.mods.add_optional') }}
                             </button>
                         </div>
                     </form>
@@ -107,7 +107,7 @@
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">Mods optionnels</h5>
+                    <h5 class="mb-0">{{ __('messages.instances.mods.optional_mods') }}</h5>
                 </div>
                 <div class="card-body">
                     @forelse ($optionalMods as $mod)
@@ -123,7 +123,7 @@
                                         <div>
                                             <strong>{{ $mod->name }}</strong>
                                             @if ($mod->recommended)
-                                                <span class="badge bg-success ms-1">Recommandé</span>
+                                                <span class="badge bg-success ms-1">{{ __('messages.instances.mods.recommended') }}</span>
                                             @endif
                                             <br><small class="text-muted">{{ $mod->file }}</small>
                                             @if ($mod->description)
@@ -153,7 +153,7 @@
                                         <div class="row g-2">
                                             <div class="col-md-6">
                                                 <input type="text" class="form-control form-control-sm" name="name"
-                                                    value="{{ $mod->name }}" placeholder="Nom d'affichage">
+                                                    value="{{ $mod->name }}" placeholder="{{ __('messages.instances.mods.display_name') }}">
                                             </div>
                                             <div class="col-md-6">
                                                 <input type="file" class="form-control form-control-sm" name="icon_file"
@@ -161,16 +161,16 @@
                                             </div>
                                             <div class="col-12">
                                                 <textarea class="form-control form-control-sm" name="description" rows="2"
-                                                    placeholder="Description">{{ $mod->description }}</textarea>
+                                                    placeholder="{{ __('messages.instances.mods.description') }}">{{ $mod->description }}</textarea>
                                             </div>
                                             <div class="col-12 d-flex gap-2 align-items-center">
                                                 <div class="form-check form-switch">
                                                     <input type="checkbox" class="form-check-input" name="recommended" value="1"
                                                         {{ $mod->recommended ? 'checked' : '' }}>
-                                                    <label class="form-check-label">Recommandé</label>
+                                                    <label class="form-check-label">{{ __('messages.instances.mods.recommended') }}</label>
                                                 </div>
                                                 <button type="submit" class="btn btn-sm btn-primary ms-auto">
-                                                    <i class="bi bi-check"></i> Enregistrer
+                                                    <i class="bi bi-check"></i> {{ __('messages.instances.mods.save') }}
                                                 </button>
                                             </div>
                                         </div>
@@ -179,7 +179,7 @@
                             </div>
                         </div>
                     @empty
-                        <p class="text-muted">Aucun mod optionnel configuré</p>
+                        <p class="text-muted">{{ __('messages.instances.mods.none_configured') }}</p>
                     @endforelse
                 </div>
             </div>

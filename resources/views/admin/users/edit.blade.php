@@ -32,7 +32,7 @@
                 <div class="col-md-6">
                     <label for="password" class="form-label">{{ __('messages.users.new_password') }}</label>
                     <input type="password" class="form-control @error('password') is-invalid @enderror"
-                           id="password" name="password" placeholder="Laissez vide pour ne pas modifier">
+                           id="password" name="password" placeholder="{{ __('messages.users.new_password_placeholder') }}">
                     @error('password')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

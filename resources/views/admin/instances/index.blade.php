@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Instances')
-@section('page-title', 'Gestion des instances')
+@section('title', __('messages.instances.index.title'))
+@section('page-title', __('messages.instances.index.header'))
 
 @section('content')
     @if (session('success'))
@@ -21,9 +21,9 @@
     @endif
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <p class="text-muted mb-0">Gérez vos instances de jeu (serveur, loader, mods, whitelist, etc.)</p>
+        <p class="text-muted mb-0">{{ __('messages.instances.index.description') }}</p>
         <a href="{{ route('admin.instances.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Nouvelle instance
+            <i class="bi bi-plus-circle me-1"></i> {{ __('messages.instances.index.create') }}
         </a>
     </div>
 
@@ -37,7 +37,7 @@
                             <h5 class="card-title mb-0">
                                 {{ $instance->display_name }}
                                 @if ($instance->is_default)
-                                    <span class="badge bg-primary ms-1">Par défaut</span>
+                                    <span class="badge bg-primary ms-1">{{ __('messages.instances.index.default') }}</span>
                                 @endif
                             </h5>
                         </div>
@@ -72,37 +72,37 @@
                             </a>
                             <a href="{{ route('admin.instances.ignore', $instance->id) }}"
                                 class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-slash me-1"></i> Ignorés
+                                <i class="bi bi-slash me-1"></i> {{ __('messages.instances.index.ignored') }}
                             </a>
                             @if ($indexAuthMode === 'azuriom')
                                 <a href="{{ route('admin.instances.bg', $instance->id) }}" class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-image me-1"></i> Backgrounds
+                                    <i class="bi bi-image me-1"></i> {{ __('messages.instances.index.backgrounds') }}
                                 </a>
                             @endif
                             <a href="{{ route('admin.instances.files', $instance->id) }}"
                                 class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-folder me-1"></i> Fichiers
+                                <i class="bi bi-folder me-1"></i> {{ __('messages.instances.index.files') }}
                             </a>
                         </div>
                     </div>
                     <div class="card-footer bg-transparent d-flex justify-content-between">
                         <div>
                             <a href="{{ route('admin.instances.edit', $instance->id) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-pencil"></i> Éditer
+                                <i class="bi bi-pencil"></i> {{ __('messages.instances.index.edit') }}
                             </a>
                             @if (!$instance->is_default)
                                 <form action="{{ route('admin.instances.setDefault', $instance->id) }}" method="POST"
                                     class="d-inline">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-star"></i> Défaut
+                                        <i class="bi bi-star"></i> {{ __('messages.instances.index.set_default') }}
                                     </button>
                                 </form>
                             @endif
                         </div>
                         @if (!$instance->is_default)
                             <form action="{{ route('admin.instances.destroy', $instance->id) }}" method="POST"
-                                onsubmit="return confirm('Supprimer cette instance ?')">
+                                onsubmit="return confirm({{ Illuminate\Support\Js::from(__('messages.instances.index.delete_confirm')) }})">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger">

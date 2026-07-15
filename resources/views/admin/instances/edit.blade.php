@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', $instance ? 'Éditer ' . $instance->display_name : 'Nouvelle instance')
-@section('page-title', $instance ? 'Éditer : ' . $instance->display_name : 'Nouvelle instance')
+@section('title', $instance ? __('messages.instances.form.edit_title', ['name' => $instance->display_name]) : __('messages.instances.form.create_title'))
+@section('page-title', $instance ? __('messages.instances.form.edit_title', ['name' => $instance->display_name]) : __('messages.instances.form.create_title'))
 
 @section('content')
     @if (session('success'))
@@ -25,7 +25,7 @@
 
     <div class="mb-3">
         <a href="{{ route('admin.instances.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i> Retour aux instances
+            <i class="bi bi-arrow-left me-1"></i> {{ __('messages.instances.back') }}
         </a>
     </div>
 
@@ -41,48 +41,46 @@
 
                 {{-- Identité --}}
                 <fieldset class="border p-3 mb-4 rounded">
-                    <legend class="float-none w-auto px-2">Identité</legend>
+                    <legend class="float-none w-auto px-2">{{ __('messages.instances.form.identity') }}</legend>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="display_name" class="form-label">Nom d'affichage</label>
+                            <label for="display_name" class="form-label">{{ __('messages.instances.form.display_name') }}</label>
                             <input type="text" class="form-control" id="display_name" name="display_name"
                                 value="{{ old('display_name', $instance->display_name ?? '') }}" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="name" class="form-label">Slug (nom dossier)</label>
+                            <label for="name" class="form-label">{{ __('messages.instances.form.slug') }}</label>
                             <input type="text" class="form-control" id="name" name="name"
                                 value="{{ old('name', $instance->name ?? '') }}" required
-                                title="Lettres, chiffres, tirets et underscores uniquement">
-                            <div class="form-text">Utilisé pour le nom du dossier de l'instance. Pas d'espaces ni de
-                                caractères spéciaux.</div>
+                                title="{{ __('messages.instances.form.slug_rule') }}">
+                            <div class="form-text">{{ __('messages.instances.form.slug_help') }}</div>
                         </div>
                         <div class="col-12">
-                            <label for="description" class="form-label">Description de l'instance</label>
+                            <label for="description" class="form-label">{{ __('messages.instances.form.description') }}</label>
                             <textarea class="form-control" id="description" name="description" rows="3" maxlength="1000"
-                                placeholder="Présentez brièvement cette instance aux joueurs...">{{ old('description', $instance->description ?? '') }}</textarea>
-                            <div class="form-text">Affichée sous le nom du serveur dans le launcher.</div>
+                                placeholder="{{ __('messages.instances.form.description_placeholder') }}">{{ old('description', $instance->description ?? '') }}</textarea>
+                            <div class="form-text">{{ __('messages.instances.form.description_help') }}</div>
                         </div>
                     </div>
                 </fieldset>
 
                 {{-- Serveur --}}
                 <fieldset class="border p-3 mb-4 rounded">
-                    <legend class="float-none w-auto px-2">Serveur</legend>
+                    <legend class="float-none w-auto px-2">{{ __('messages.instances.form.server') }}</legend>
 
                     @if (($authMode ?? 'azuriom') === 'azuriom')
                         {{-- Azuriom mode: select from API servers --}}
                         <div class="mb-3">
-                            <label for="azuriom_server_id" class="form-label">Serveur Azuriom lié</label>
+                            <label for="azuriom_server_id" class="form-label">{{ __('messages.instances.form.azuriom_server') }}</label>
                             <div class="d-flex gap-2">
                                 <select class="form-select" id="azuriom_server_id" name="azuriom_server_id">
-                                    <option value="">— Chargement... —</option>
+                                    <option value="">{{ __('messages.instances.form.loading_option') }}</option>
                                 </select>
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="btn-refresh-servers">
                                     <i class="bi bi-arrow-clockwise"></i>
                                 </button>
                             </div>
-                            <small class="form-text text-muted">Sélectionnez un serveur synchronisé depuis Azuriom. L'IP, le
-                                port et le nom seront remplis automatiquement.</small>
+                            <small class="form-text text-muted">{{ __('messages.instances.form.azuriom_server_help') }}</small>
                         </div>
                         <input type="hidden" id="server_ip" name="server_ip"
                             value="{{ old('server_ip', $instance->server_ip ?? '') }}">
@@ -94,17 +92,17 @@
                         {{-- Microsoft mode: manual server inputs --}}
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label for="server_name" class="form-label">Nom du serveur</label>
+                                <label for="server_name" class="form-label">{{ __('messages.instances.form.server_name') }}</label>
                                 <input type="text" class="form-control" id="server_name" name="server_name"
                                     value="{{ old('server_name', $instance->server_name ?? '') }}">
                             </div>
                             <div class="col-md-4">
-                                <label for="server_ip" class="form-label">IP du serveur</label>
+                                <label for="server_ip" class="form-label">{{ __('messages.instances.form.server_ip') }}</label>
                                 <input type="text" class="form-control" id="server_ip" name="server_ip"
                                     value="{{ old('server_ip', $instance->server_ip ?? '') }}">
                             </div>
                             <div class="col-md-4">
-                                <label for="server_port" class="form-label">Port</label>
+                                <label for="server_port" class="form-label">{{ __('messages.instances.form.server_port') }}</label>
                                 <input type="text" class="form-control" id="server_port" name="server_port" placeholder="25565"
                                     value="{{ old('server_port', $instance->server_port ?? '') }}">
                             </div>
@@ -113,20 +111,20 @@
 
                     <div class="row g-3 mt-2">
                         <div class="col-md-6">
-                            <label for="server_icon_file" class="form-label">Icône du serveur</label>
+                            <label for="server_icon_file" class="form-label">{{ __('messages.instances.form.server_icon') }}</label>
                             <input type="file" class="form-control" id="server_icon_file" name="server_icon_file"
                                 accept="image/*">
                             @if ($instance && $instance->server_icon)
                                 <div class="mt-2 d-flex align-items-center gap-2">
-                                    <img src="{{ asset('storage/' . $instance->server_icon) }}" alt="Icon"
+                                    <img src="{{ asset('storage/' . $instance->server_icon) }}" alt="{{ __('messages.instances.form.server_icon_alt') }}"
                                         style="height: 32px;">
                                     <button type="button" class="btn btn-sm btn-outline-danger"
-                                        onclick="deleteIcon()">Supprimer</button>
+                                        onclick="deleteIcon()">{{ __('messages.instances.form.delete_icon') }}</button>
                                 </div>
                             @endif
                         </div>
                         <div class="col-md-6">
-                            <label for="server_icon_url" class="form-label">Ou URL icône distante</label>
+                            <label for="server_icon_url" class="form-label">{{ __('messages.instances.form.remote_icon_url') }}</label>
                             <input type="url" class="form-control" id="server_icon_url" name="server_icon_url"
                                 value="{{ old('server_icon_url', $instance->server_icon_url ?? '') }}">
                         </div>
@@ -135,17 +133,17 @@
 
                 {{-- Loader --}}
                 <fieldset class="border p-3 mb-4 rounded">
-                    <legend class="float-none w-auto px-2">Loader</legend>
+                    <legend class="float-none w-auto px-2">{{ __('messages.instances.form.loader') }}</legend>
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="minecraft_version" class="form-label">Version Minecraft</label>
+                            <label for="minecraft_version" class="form-label">{{ __('messages.instances.form.minecraft_version') }}</label>
                             <input type="text" class="form-control" id="minecraft_version" name="minecraft_version"
                                 value="{{ old('minecraft_version', $instance->minecraft_version ?? '') }}">
                         </div>
                         <div class="col-md-4">
-                            <label for="loader_type" class="form-label">Type de loader</label>
+                            <label for="loader_type" class="form-label">{{ __('messages.instances.form.loader_type') }}</label>
                             <select class="form-select" id="loader_type" name="loader_type">
-                                <option value="">Aucun</option>
+                                <option value="">{{ __('messages.common.none') }}</option>
                                 <option value="forge" {{ old('loader_type', $instance->loader_type ?? '') === 'forge' ? 'selected' : '' }}>Forge</option>
                                 <option value="neoforge" {{ old('loader_type', $instance->loader_type ?? '') === 'neoforge' ? 'selected' : '' }}>NeoForge</option>
                                 <option value="fabric" {{ old('loader_type', $instance->loader_type ?? '') === 'fabric' ? 'selected' : '' }}>Fabric</option>
@@ -154,7 +152,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="loader_build_version" class="form-label">Build / Version du loader</label>
+                            <label for="loader_build_version" class="form-label">{{ __('messages.instances.form.loader_build') }}</label>
                             {{-- Dynamic: select for forge/fabric, text input for others --}}
                             <select class="form-select" id="loader_build_select" style="display:none;"></select>
                             <input type="text" class="form-control" id="loader_build_manual" style="display:none;"
@@ -167,37 +165,37 @@
                         <input type="hidden" name="loader_activation" value="0">
                         <input type="checkbox" class="form-check-input" id="loader_activation" name="loader_activation"
                             value="1" {{ old('loader_activation', $instance->loader_activation ?? true) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="loader_activation">Activer le loader</label>
+                        <label class="form-check-label" for="loader_activation">{{ __('messages.instances.form.enable_loader') }}</label>
                     </div>
                 </fieldset>
 
                 {{-- Apparence --}}
                 <fieldset class="border p-3 mb-4 rounded">
-                    <legend class="float-none w-auto px-2">Apparence</legend>
+                    <legend class="float-none w-auto px-2">{{ __('messages.instances.form.appearance') }}</legend>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="background_file" class="form-label">Fond d'écran par défaut</label>
+                            <label for="background_file" class="form-label">{{ __('messages.instances.form.default_background') }}</label>
                             <input type="file" class="form-control" id="background_file" name="background_file"
                                 accept="image/*">
                             @if ($instance && $instance->background_default)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $instance->background_default) }}" alt="Background"
+                                    <img src="{{ asset('storage/' . $instance->background_default) }}" alt="{{ __('messages.instances.form.background_alt') }}"
                                         style="height: 80px; border-radius: 8px;">
                                 </div>
                             @endif
                         </div>
                         <div class="col-md-6">
-                            <label for="rpc_details_override" class="form-label">RPC détails (override)</label>
+                            <label for="rpc_details_override" class="form-label">{{ __('messages.instances.form.rpc_details') }}</label>
                             <input type="text" class="form-control" id="rpc_details_override" name="rpc_details_override"
                                 value="{{ old('rpc_details_override', $instance->rpc_details_override ?? '') }}"
-                                placeholder="Remplace le texte RPC pendant le jeu">
+                                placeholder="{{ __('messages.instances.form.rpc_placeholder') }}">
                         </div>
                     </div>
                 </fieldset>
 
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary btn-lg">
-                        💾 {{ $instance ? 'Mettre à jour' : 'Créer l\'instance' }}
+                        💾 {{ $instance ? __('messages.instances.form.update') : __('messages.instances.form.create') }}
                     </button>
                 </div>
             </form>
@@ -205,6 +203,16 @@
     </div>
 
     <script>
+        const instanceI18n = {{ Illuminate\Support\Js::from([
+            'slugRule' => __('messages.instances.form.slug_rule'),
+            'loading' => __('messages.instances.form.loading_option'),
+            'error' => __('messages.instances.form.load_error'),
+            'errorOption' => __('messages.instances.form.error_option'),
+            'none' => __('messages.instances.form.none_option'),
+            'loadError' => __('messages.instances.form.load_error_option'),
+            'deleteIconConfirm' => __('messages.instances.form.delete_icon_confirm'),
+        ]) }};
+
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('instance-form');
             const loaderType = document.getElementById('loader_type');
@@ -219,7 +227,7 @@
             if (nameInput) {
                 nameInput.addEventListener('input', function () {
                     const valid = /^[a-zA-Z0-9_-]+$/.test(this.value) || this.value === '';
-                    this.setCustomValidity(valid ? '' : 'Lettres, chiffres, tirets et underscores uniquement');
+                    this.setCustomValidity(valid ? '' : instanceI18n.slugRule);
                 });
             }
 
@@ -269,16 +277,16 @@
 
             function loadForgeBuilds(version) {
                 if (!version) return;
-                buildSelect.innerHTML = '<option>Chargement...</option>';
+                buildSelect.innerHTML = `<option>${instanceI18n.loading}</option>`;
                 showSelect();
                 fetch(`/admin/instances/loader/builds?mc_version=${version}`)
                     .then(r => r.json())
                     .then(data => populateSelect(data.builds || [], currentVersion))
-                    .catch(() => { buildSelect.innerHTML = '<option>Erreur</option>'; });
+                    .catch(() => { buildSelect.innerHTML = `<option>${instanceI18n.error}</option>`; });
             }
 
             function loadFabricVersions() {
-                buildSelect.innerHTML = '<option>Chargement...</option>';
+                buildSelect.innerHTML = `<option>${instanceI18n.loading}</option>`;
                 showSelect();
                 fetch('/admin/instances/loader/fabric-versions')
                     .then(r => r.json())
@@ -286,7 +294,7 @@
                         const versions = (data.versions || []).map(v => v.version || v);
                         populateSelect(versions, currentVersion);
                     })
-                    .catch(() => { buildSelect.innerHTML = '<option>Erreur</option>'; });
+                    .catch(() => { buildSelect.innerHTML = `<option>${instanceI18n.error}</option>`; });
             }
 
             function updateBuilds() {
@@ -325,15 +333,15 @@
                 const currentServerPort = '{{ old('server_port', $instance->server_port ?? '') }}';
 
                 function fetchServers() {
-                    serverSelect.innerHTML = '<option value="">— Chargement... —</option>';
+                    serverSelect.innerHTML = `<option value="">${instanceI18n.loading}</option>`;
                     fetch('{{ route("admin.instances.fetchServers") }}')
                         .then(r => r.json())
                         .then(data => {
                             if (data.error) {
-                                serverSelect.innerHTML = '<option value="">— Erreur: ' + data.error + ' —</option>';
+                                serverSelect.innerHTML = `<option value="">${instanceI18n.errorOption.replace(':message', data.error)}</option>`;
                                 return;
                             }
-                            serverSelect.innerHTML = '<option value="">— Aucun —</option>';
+                            serverSelect.innerHTML = `<option value="">${instanceI18n.none}</option>`;
                             (data || []).forEach(srv => {
                                 const opt = document.createElement('option');
                                 opt.value = srv.id;
@@ -350,7 +358,7 @@
                             });
                         })
                         .catch(() => {
-                            serverSelect.innerHTML = '<option value="">— Erreur de chargement —</option>';
+                            serverSelect.innerHTML = `<option value="">${instanceI18n.loadError}</option>`;
                         });
                 }
 
@@ -373,7 +381,7 @@
 
         @if ($instance && $instance->server_icon)
             function deleteIcon() {
-                if (!confirm('Supprimer l\'icône ?')) return;
+                if (!confirm(instanceI18n.deleteIconConfirm)) return;
                 fetch('{{ route("admin.instances.deleteIcon", $instance->id) }}', {
                     method: 'DELETE',
                     headers: {

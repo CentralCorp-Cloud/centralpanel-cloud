@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Fonds par rôle - ' . $instance->display_name)
-@section('page-title', 'Fonds image ou vidéo par rôle : ' . $instance->display_name)
+@section('title', __('messages.instances.backgrounds.title', ['name' => $instance->display_name]))
+@section('page-title', __('messages.instances.backgrounds.header', ['name' => $instance->display_name]))
 
 @section('content')
     @if (session('success'))
@@ -23,13 +23,12 @@
 
     <div class="mb-3">
         <a href="{{ route('admin.instances.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i> Retour aux instances
+            <i class="bi bi-arrow-left me-1"></i> {{ __('messages.instances.back') }}
         </a>
     </div>
 
     <div class="alert alert-info">
-        Chaque rôle peut utiliser une image ou une vidéo YouTube comme fond plein écran dans cette instance.
-        L’ajout d’un nouveau média remplace automatiquement l’ancien.
+        {{ __('messages.instances.backgrounds.intro') }}
     </div>
 
     <div class="row g-4">
@@ -37,10 +36,10 @@
         <div class="col-md-5">
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Ajouter des rôles</h5>
+                    <h5 class="mb-0">{{ __('messages.instances.backgrounds.add_roles') }}</h5>
                     @if (($hasAzuriomApi ?? false))
                         <button type="button" class="btn btn-sm btn-outline-primary" id="btn-refresh-bg-roles">
-                            <i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir
+                            <i class="bi bi-arrow-clockwise me-1"></i> {{ __('messages.instances.backgrounds.refresh') }}
                         </button>
                     @endif
                 </div>
@@ -48,18 +47,18 @@
                     @if (($hasAzuriomApi ?? false))
                         {{-- Azuriom mode: API role selection --}}
                         <div class="mb-3">
-                            <input type="text" class="form-control" id="search-bg-roles" placeholder="Rechercher un rôle...">
+                            <input type="text" class="form-control" id="search-bg-roles" placeholder="{{ __('messages.instances.backgrounds.search_role') }}">
                         </div>
                         <form action="{{ route('admin.instances.bg.update', $instance->id) }}" method="POST"
                             id="form-add-bg-roles">
                             @csrf
                             <div id="azuriom-bg-roles-list" style="max-height: 300px; overflow-y: auto;" class="mb-3">
                                 <div class="text-center text-muted py-3">
-                                    <div class="spinner-border spinner-border-sm me-1"></div> Chargement...
+                                    <div class="spinner-border spinner-border-sm me-1"></div> {{ __('messages.instances.backgrounds.loading') }}
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-primary w-100" id="btn-add-bg-roles" disabled>
-                                <i class="bi bi-plus-circle me-1"></i> Ajouter les sélectionnés
+                                <i class="bi bi-plus-circle me-1"></i> {{ __('messages.instances.backgrounds.add_selected') }}
                             </button>
                         </form>
                     @else
@@ -68,22 +67,22 @@
                             enctype="multipart/form-data">
                             @csrf
                             <div class="mb-3">
-                                <label for="role_name" class="form-label">Nom du rôle</label>
+                                <label for="role_name" class="form-label">{{ __('messages.instances.backgrounds.role_name') }}</label>
                                 <input type="text" class="form-control" id="role_name" name="role_name" required>
                             </div>
                             <div class="mb-3">
-                                <label for="role_background" class="form-label">Image de fond (optionnelle)</label>
+                                <label for="role_background" class="form-label">{{ __('messages.instances.backgrounds.optional_image') }}</label>
                                 <input type="file" class="form-control" id="role_background" name="role_background"
                                     accept="image/*">
                             </div>
-                            <div class="text-center text-muted small mb-3">— ou —</div>
+                            <div class="text-center text-muted small mb-3">— {{ __('messages.instances.backgrounds.or') }} —</div>
                             <div class="mb-3">
-                                <label for="role_video_url" class="form-label">URL vidéo YouTube</label>
+                                <label for="role_video_url" class="form-label">{{ __('messages.instances.backgrounds.youtube_url') }}</label>
                                 <input type="url" class="form-control" id="role_video_url" name="role_video_url"
                                     placeholder="https://www.youtube.com/watch?v=...">
-                                <div class="form-text">Formats vidéo classique et Shorts acceptés.</div>
+                                <div class="form-text">{{ __('messages.instances.backgrounds.video_help') }}</div>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus me-1"></i> Ajouter</button>
+                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus me-1"></i> {{ __('messages.instances.backgrounds.add') }}</button>
                         </form>
                     @endif
                 </div>
@@ -94,7 +93,7 @@
         <div class="col-md-7">
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">Fonds actuels ({{ $roles->count() }})</h5>
+                    <h5 class="mb-0">{{ __('messages.instances.backgrounds.current', ['count' => $roles->count()]) }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="row row-cols-1 row-cols-md-2 g-3">
@@ -108,7 +107,7 @@
                                                 alt="{{ $bg->role_name }}" class="w-100 h-100" style="object-fit: cover; opacity: .72;">
                                             <div class="position-absolute top-50 start-50 translate-middle text-white text-center">
                                                 <i class="bi bi-play-circle-fill fs-1"></i>
-                                                <div class="small fw-semibold">Fond vidéo</div>
+                                                <div class="small fw-semibold">{{ __('messages.instances.backgrounds.video_background') }}</div>
                                             </div>
                                         </div>
                                     @elseif ($bg->image_path)
@@ -117,7 +116,7 @@
                                     @else
                                         <div class="card-img-top bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center"
                                             style="height: 120px;">
-                                            <span class="text-muted"><i class="bi bi-image me-1"></i> Aucun média</span>
+                                            <span class="text-muted"><i class="bi bi-image me-1"></i> {{ __('messages.instances.backgrounds.no_media') }}</span>
                                         </div>
                                     @endif
                                     <div class="card-body py-2">
@@ -133,18 +132,18 @@
                                             @csrf
                                             <input type="hidden" name="role_name" value="{{ $bg->role_name }}">
                                             <div class="mb-2">
-                                                <label class="form-label small mb-1">Nouvelle image</label>
+                                                <label class="form-label small mb-1">{{ __('messages.instances.backgrounds.new_image') }}</label>
                                                 <input type="file" class="form-control form-control-sm" name="role_background"
                                                     accept="image/*">
                                             </div>
-                                            <div class="text-center text-muted small mb-2">ou</div>
+                                            <div class="text-center text-muted small mb-2">{{ __('messages.instances.backgrounds.or') }}</div>
                                             <div class="mb-2">
-                                                <label class="form-label small mb-1">Nouvelle URL YouTube</label>
+                                                <label class="form-label small mb-1">{{ __('messages.instances.backgrounds.new_youtube_url') }}</label>
                                                 <input type="url" class="form-control form-control-sm" name="role_video_url"
                                                     placeholder="https://youtu.be/...">
                                             </div>
                                             <button type="submit" class="btn btn-sm btn-outline-primary w-100">
-                                                <i class="bi bi-arrow-repeat me-1"></i> Remplacer le média
+                                                <i class="bi bi-arrow-repeat me-1"></i> {{ __('messages.instances.backgrounds.replace_media') }}
                                             </button>
                                         </form>
                                     </div>
@@ -153,7 +152,7 @@
                                             method="POST" class="d-inline">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                <i class="bi bi-trash"></i> Supprimer
+                                                <i class="bi bi-trash"></i> {{ __('messages.instances.backgrounds.delete') }}
                                             </button>
                                         </form>
                                     </div>
@@ -161,7 +160,7 @@
                             </div>
                         @empty
                             <div class="col">
-                                <p class="text-muted">Aucun background par rôle configuré</p>
+                                <p class="text-muted">{{ __('messages.instances.backgrounds.none_configured') }}</p>
                             </div>
                         @endforelse
                     </div>
@@ -172,6 +171,15 @@
 
     @if (($hasAzuriomApi ?? false))
         <script>
+            const backgroundsI18n = {{ Illuminate\Support\Js::from([
+                'loading' => __('messages.instances.backgrounds.loading'),
+                'loadError' => __('messages.instances.backgrounds.load_error'),
+                'noRoleAvailable' => __('messages.instances.backgrounds.no_role_available'),
+                'addSelected' => __('messages.instances.backgrounds.add_selected'),
+                'selectedRole' => trans_choice('messages.instances.backgrounds.selected_roles', 1, ['count' => ':count']),
+                'selectedRoles' => trans_choice('messages.instances.backgrounds.selected_roles', 2, ['count' => ':count']),
+                'power' => __('messages.instances.backgrounds.power', ['power' => ':power']),
+            ]) }};
             let cachedBgRoles = null;
 
             function fetchBgRoles(forceRefresh = false) {
@@ -183,7 +191,7 @@
                     return;
                 }
 
-                container.innerHTML = '<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-1"></div> Chargement...</div>';
+                container.innerHTML = `<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-1"></div> ${backgroundsI18n.loading}</div>`;
 
                 fetch('{{ route("admin.instances.bg.fetchRoles", $instance->id) }}')
                     .then(r => r.json())
@@ -196,7 +204,7 @@
                         renderBgRoles(data);
                     })
                     .catch(err => {
-                        container.innerHTML = '<div class="alert alert-danger mb-0">Erreur de chargement</div>';
+                        container.innerHTML = `<div class="alert alert-danger mb-0">${backgroundsI18n.loadError}</div>`;
                     });
             }
 
@@ -207,7 +215,7 @@
                 const filtered = filter ? roles.filter(r => r.name.toLowerCase().includes(filter.toLowerCase())) : roles;
 
                 if (filtered.length === 0) {
-                    container.innerHTML = '<div class="text-muted text-center py-3">Aucun rôle disponible</div>';
+                    container.innerHTML = `<div class="text-muted text-center py-3">${backgroundsI18n.noRoleAvailable}</div>`;
                     return;
                 }
 
@@ -218,7 +226,7 @@
                                             <input type="hidden" name="azuriom_bg_role_ids[]" value="${r.id}" disabled class="bg-role-id-hidden" data-for="${r.id}">
                                             <label class="form-check-label d-flex align-items-center gap-2" for="bg-role-${r.id}">
                                                 <span class="badge" style="background-color: ${r.color}; color: #fff;">${r.name}</span>
-                                                <small class="text-muted">Power: ${r.power}</small>
+                                                <small class="text-muted">${backgroundsI18n.power.replace(':power', r.power)}</small>
                                                 ${r.is_admin && r.name !== 'Admin' ? '<span class="badge bg-danger">Admin</span>' : ''}
                                             </label>
                                         </div>
@@ -232,7 +240,9 @@
                 if (!btn) return;
                 const checked = document.querySelectorAll('.bg-role-checkbox:checked').length;
                 btn.disabled = checked === 0;
-                btn.textContent = checked > 0 ? `Ajouter ${checked} rôle(s)` : 'Ajouter les sélectionnés';
+                btn.textContent = checked === 0
+                    ? backgroundsI18n.addSelected
+                    : (checked === 1 ? backgroundsI18n.selectedRole : backgroundsI18n.selectedRoles).replace(':count', checked);
             }
 
             document.addEventListener('DOMContentLoaded', function () {

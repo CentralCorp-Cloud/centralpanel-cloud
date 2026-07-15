@@ -62,16 +62,16 @@ class SettingsExportController extends Controller
 
         $settings = json_decode((string) file_get_contents($request->file('settings_file')->path()), true);
         if (!is_array($settings) || !isset($settings['data']) || !is_array($settings['data'])) {
-            return back()->with('error', 'Le fichier .centralcorp est invalide ou corrompu.');
+            return back()->with('error', __('messages.settings_import.invalid_file'));
         }
 
         if (!in_array($settings['version'] ?? null, ['1.0', '2.0'], true)) {
-            return back()->with('error', 'Version du fichier .centralcorp non supportée.');
+            return back()->with('error', __('messages.settings_import.unsupported_version'));
         }
 
         foreach (array_keys($settings['data']) as $table) {
             if (!in_array($table, self::EXPORT_TABLES, true)) {
-                return back()->with('error', "La table {$table} n'est pas autorisée dans cet import.");
+                return back()->with('error', __('messages.settings_import.unauthorized_table', ['table' => $table]));
             }
         }
 
@@ -126,9 +126,9 @@ class SettingsExportController extends Controller
             Cache::forever('launcher_options_version', (int) Cache::get('launcher_options_version', 1) + 1);
             Cache::forever('launcher_files_version', (int) Cache::get('launcher_files_version', 1) + 1);
 
-            return back()->with('success', 'Les paramètres ont été importés avec succès depuis le fichier .centralcorp.');
+            return back()->with('success', __('messages.settings_import.success'));
         } catch (\Throwable $e) {
-            return back()->with('error', 'Une erreur est survenue lors de l\'importation : ' . $e->getMessage());
+            return back()->with('error', __('messages.settings_import.error', ['message' => $e->getMessage()]));
         }
     }
 

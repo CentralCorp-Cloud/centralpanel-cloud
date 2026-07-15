@@ -59,7 +59,7 @@ class AdminServerController extends Controller
             $api = $this->azuriomApi ?: new AzuriomApi();
             $serversResponse = $api->getServers();
             if (!$serversResponse->successful()) {
-                throw new \RuntimeException('Impossible de contacter l\'API Azuriom');
+                throw new \RuntimeException(__('messages.instances.errors.api_unreachable'));
             }
 
             $servers = $serversResponse->json();

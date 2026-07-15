@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Whitelist - ' . $instance->display_name)
-@section('page-title', 'Whitelist : ' . $instance->display_name)
+@section('title', __('messages.instances.whitelist.title', ['name' => $instance->display_name]))
+@section('page-title', __('messages.instances.whitelist.header', ['name' => $instance->display_name]))
 
 @section('content')
     @if (session('success'))
@@ -13,7 +13,7 @@
 
     <div class="mb-3">
         <a href="{{ route('admin.instances.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i> Retour aux instances
+            <i class="bi bi-arrow-left me-1"></i> {{ __('messages.instances.back') }}
         </a>
     </div>
 
@@ -24,10 +24,10 @@
         <div class="{{ $authMode === 'microsoft' ? 'col-12' : 'col-md-6' }}">
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Utilisateurs whitelist</h5>
+                    <h5 class="mb-0">{{ __('messages.instances.whitelist.users') }}</h5>
                     @if ($authMode === 'azuriom' && ($hasAzuriomApi ?? false))
                         <button type="button" class="btn btn-sm btn-outline-primary" id="btn-refresh-users">
-                            <i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir
+                            <i class="bi bi-arrow-clockwise me-1"></i> {{ __('messages.instances.whitelist.refresh') }}
                         </button>
                     @endif
                 </div>
@@ -36,18 +36,18 @@
                         {{-- Azuriom mode: search + checkbox selection --}}
                         <div class="mb-3">
                             <input type="text" class="form-control" id="search-users"
-                                placeholder="Rechercher un utilisateur...">
+                                placeholder="{{ __('messages.instances.whitelist.search_user') }}">
                         </div>
                         <form action="{{ route('admin.instances.whitelist.store', $instance->id) }}" method="POST"
                             id="form-add-users">
                             @csrf
                             <div id="azuriom-users-list" style="max-height: 300px; overflow-y: auto;" class="mb-3">
                                 <div class="text-center text-muted py-3">
-                                    <div class="spinner-border spinner-border-sm me-1"></div> Chargement...
+                                    <div class="spinner-border spinner-border-sm me-1"></div> {{ __('messages.instances.whitelist.loading') }}
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-primary w-100" id="btn-add-selected-users" disabled>
-                                <i class="bi bi-plus-circle me-1"></i> Ajouter les sélectionnés
+                                <i class="bi bi-plus-circle me-1"></i> {{ __('messages.instances.whitelist.add_selected') }}
                             </button>
                         </form>
                     @else
@@ -55,15 +55,15 @@
                         <form action="{{ route('admin.instances.whitelist.store', $instance->id) }}" method="POST" class="mb-3">
                             @csrf
                             <div class="input-group">
-                                <input type="text" class="form-control" name="username" placeholder="Nom d'utilisateur"
+                                <input type="text" class="form-control" name="username" placeholder="{{ __('messages.instances.whitelist.username') }}"
                                     required>
-                                <button type="submit" class="btn btn-primary"><i class="bi bi-plus"></i> Ajouter</button>
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-plus"></i> {{ __('messages.instances.whitelist.add') }}</button>
                             </div>
                         </form>
                     @endif
 
                     {{-- Current whitelisted users --}}
-                    <h6 class="mt-3 mb-2">Utilisateurs actuels ({{ $users->count() }})</h6>
+                    <h6 class="mt-3 mb-2">{{ __('messages.instances.whitelist.current_users', ['count' => $users->count()]) }}</h6>
                     <ul class="list-group">
                         @forelse ($users as $user)
                             <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -76,7 +76,7 @@
                                 </form>
                             </li>
                         @empty
-                            <li class="list-group-item text-muted">Aucun utilisateur</li>
+                            <li class="list-group-item text-muted">{{ __('messages.instances.whitelist.no_users') }}</li>
                         @endforelse
                     </ul>
                 </div>
@@ -90,10 +90,10 @@
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Rôles whitelist</h5>
+                        <h5 class="mb-0">{{ __('messages.instances.whitelist.roles') }}</h5>
                         @if ($hasAzuriomApi ?? false)
                             <button type="button" class="btn btn-sm btn-outline-primary" id="btn-refresh-roles">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir
+                                <i class="bi bi-arrow-clockwise me-1"></i> {{ __('messages.instances.whitelist.refresh') }}
                             </button>
                         @endif
                     </div>
@@ -101,32 +101,32 @@
                         @if ($hasAzuriomApi ?? false)
                             {{-- Azuriom mode: search + checkbox selection --}}
                             <div class="mb-3">
-                                <input type="text" class="form-control" id="search-roles" placeholder="Rechercher un rôle...">
+                                <input type="text" class="form-control" id="search-roles" placeholder="{{ __('messages.instances.whitelist.search_role') }}">
                             </div>
                             <form action="{{ route('admin.instances.whitelist.store', $instance->id) }}" method="POST"
                                 id="form-add-roles">
                                 @csrf
                                 <div id="azuriom-roles-list" style="max-height: 300px; overflow-y: auto;" class="mb-3">
                                     <div class="text-center text-muted py-3">
-                                        <div class="spinner-border spinner-border-sm me-1"></div> Chargement...
+                                        <div class="spinner-border spinner-border-sm me-1"></div> {{ __('messages.instances.whitelist.loading') }}
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100" id="btn-add-selected-roles" disabled>
-                                    <i class="bi bi-plus-circle me-1"></i> Ajouter les sélectionnés
+                                    <i class="bi bi-plus-circle me-1"></i> {{ __('messages.instances.whitelist.add_selected') }}
                                 </button>
                             </form>
                         @else
                             <form action="{{ route('admin.instances.whitelist.store', $instance->id) }}" method="POST" class="mb-3">
                                 @csrf
                                 <div class="input-group">
-                                    <input type="text" class="form-control" name="role" placeholder="Nom du rôle" required>
-                                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus"></i> Ajouter</button>
+                                    <input type="text" class="form-control" name="role" placeholder="{{ __('messages.instances.whitelist.role_name') }}" required>
+                                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus"></i> {{ __('messages.instances.whitelist.add') }}</button>
                                 </div>
                             </form>
                         @endif
 
                         {{-- Current whitelisted roles --}}
-                        <h6 class="mt-3 mb-2">Rôles actuels ({{ $roles->count() }})</h6>
+                        <h6 class="mt-3 mb-2">{{ __('messages.instances.whitelist.current_roles', ['count' => $roles->count()]) }}</h6>
                         <ul class="list-group">
                             @forelse ($roles as $role)
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -139,7 +139,7 @@
                                     </form>
                                 </li>
                             @empty
-                                <li class="list-group-item text-muted">Aucun rôle</li>
+                                <li class="list-group-item text-muted">{{ __('messages.instances.whitelist.no_roles') }}</li>
                             @endforelse
                         </ul>
                     </div>
@@ -150,6 +150,18 @@
 
     @if ($authMode === 'azuriom' && ($hasAzuriomApi ?? false))
         <script>
+            const whitelistI18n = {{ Illuminate\Support\Js::from([
+                'loading' => __('messages.instances.whitelist.loading'),
+                'loadError' => __('messages.instances.whitelist.load_error'),
+                'noUserFound' => __('messages.instances.whitelist.no_user_found'),
+                'noRoleFound' => __('messages.instances.whitelist.no_role_found'),
+                'addSelected' => __('messages.instances.whitelist.add_selected'),
+                'selectedUser' => trans_choice('messages.instances.whitelist.selected_users', 1, ['count' => ':count']),
+                'selectedUsers' => trans_choice('messages.instances.whitelist.selected_users', 2, ['count' => ':count']),
+                'selectedRole' => trans_choice('messages.instances.whitelist.selected_roles', 1, ['count' => ':count']),
+                'selectedRoles' => trans_choice('messages.instances.whitelist.selected_roles', 2, ['count' => ':count']),
+                'power' => __('messages.instances.whitelist.power', ['power' => ':power']),
+            ]) }};
             let cachedUsers = null;
             let cachedRoles = null;
 
@@ -163,7 +175,7 @@
                     return;
                 }
 
-                container.innerHTML = '<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-1"></div> Chargement...</div>';
+                container.innerHTML = `<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-1"></div> ${whitelistI18n.loading}</div>`;
 
                 fetch('{{ route("admin.instances.whitelist.fetchUsers", $instance->id) }}')
                     .then(r => r.json())
@@ -176,7 +188,7 @@
                         renderUsers(data);
                     })
                     .catch(err => {
-                        container.innerHTML = '<div class="alert alert-danger mb-0">Erreur de chargement</div>';
+                        container.innerHTML = `<div class="alert alert-danger mb-0">${whitelistI18n.loadError}</div>`;
                     });
             }
 
@@ -187,7 +199,7 @@
                 const filtered = filter ? users.filter(u => u.name.toLowerCase().includes(filter.toLowerCase())) : users;
 
                 if (filtered.length === 0) {
-                    container.innerHTML = '<div class="text-muted text-center py-3">Aucun utilisateur trouvé</div>';
+                    container.innerHTML = `<div class="text-muted text-center py-3">${whitelistI18n.noUserFound}</div>`;
                     return;
                 }
 
@@ -210,7 +222,9 @@
                 if (!btn) return;
                 const checked = document.querySelectorAll('.user-checkbox:checked').length;
                 btn.disabled = checked === 0;
-                btn.textContent = checked > 0 ? `Ajouter ${checked} utilisateur(s)` : 'Ajouter les sélectionnés';
+                btn.textContent = checked === 0
+                    ? whitelistI18n.addSelected
+                    : (checked === 1 ? whitelistI18n.selectedUser : whitelistI18n.selectedUsers).replace(':count', checked);
             }
 
             // ======= ROLES =======
@@ -223,7 +237,7 @@
                     return;
                 }
 
-                container.innerHTML = '<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-1"></div> Chargement...</div>';
+                container.innerHTML = `<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-1"></div> ${whitelistI18n.loading}</div>`;
 
                 fetch('{{ route("admin.instances.whitelist.fetchRoles", $instance->id) }}')
                     .then(r => r.json())
@@ -236,7 +250,7 @@
                         renderRoles(data);
                     })
                     .catch(err => {
-                        container.innerHTML = '<div class="alert alert-danger mb-0">Erreur de chargement</div>';
+                        container.innerHTML = `<div class="alert alert-danger mb-0">${whitelistI18n.loadError}</div>`;
                     });
             }
 
@@ -247,7 +261,7 @@
                 const filtered = filter ? roles.filter(r => r.name.toLowerCase().includes(filter.toLowerCase())) : roles;
 
                 if (filtered.length === 0) {
-                    container.innerHTML = '<div class="text-muted text-center py-3">Aucun rôle trouvé</div>';
+                    container.innerHTML = `<div class="text-muted text-center py-3">${whitelistI18n.noRoleFound}</div>`;
                     return;
                 }
 
@@ -256,7 +270,7 @@
                                     <input class="form-check-input role-checkbox" type="checkbox" name="azuriom_roles[]" value="${r.name}" id="role-${r.id}">
                                     <label class="form-check-label d-flex align-items-center gap-2" for="role-${r.id}">
                                         <span class="badge" style="background-color: ${r.color}; color: #fff;">${r.name}</span>
-                                        <small class="text-muted">Power: ${r.power}</small>
+                                        <small class="text-muted">${whitelistI18n.power.replace(':power', r.power)}</small>
                                         ${r.is_admin && r.name !== 'Admin' ? '<span class="badge bg-danger">Admin</span>' : ''}
                                     </label>
                                 </div>
@@ -270,7 +284,9 @@
                 if (!btn) return;
                 const checked = document.querySelectorAll('.role-checkbox:checked').length;
                 btn.disabled = checked === 0;
-                btn.textContent = checked > 0 ? `Ajouter ${checked} rôle(s)` : 'Ajouter les sélectionnés';
+                btn.textContent = checked === 0
+                    ? whitelistI18n.addSelected
+                    : (checked === 1 ? whitelistI18n.selectedRole : whitelistI18n.selectedRoles).replace(':count', checked);
             }
 
             // ======= EVENT LISTENERS =======

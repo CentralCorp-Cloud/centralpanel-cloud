@@ -77,7 +77,7 @@ class AdminInstanceController extends Controller
 
         $newDataPath = storage_path('app/public/data/' . $data['name']);
         if (File::exists($newDataPath)) {
-            return back()->withInput()->withErrors(['name' => 'Un dossier de données existe déjà pour ce slug.']);
+            return back()->withInput()->withErrors(['name' => __('messages.instances.errors.data_folder_exists')]);
         }
 
         // Server details are passed directly from the frontend (populated via API fetch)
@@ -153,7 +153,7 @@ class AdminInstanceController extends Controller
         $oldDataPath = $this->instanceDataPath($instance);
         $newDataPath = storage_path('app/public/data/' . $data['name']);
         if ($oldDataPath !== $newDataPath && File::exists($newDataPath)) {
-            return back()->withInput()->withErrors(['name' => 'Un dossier de données existe déjà pour ce slug.']);
+            return back()->withInput()->withErrors(['name' => __('messages.instances.errors.data_folder_exists')]);
         }
 
         // Server details are passed directly from the frontend (populated via API fetch)
@@ -307,12 +307,12 @@ class AdminInstanceController extends Controller
         try {
             $api = new \App\Request\AzuriomApi();
         } catch (\RuntimeException $e) {
-            return response()->json(['error' => 'API non configurée'], 503);
+            return response()->json(['error' => __('messages.instances.errors.api_not_configured')], 503);
         }
 
         $response = $api->getServers();
         if (!$response->successful()) {
-            return response()->json(['error' => 'Impossible de contacter l\'API'], 502);
+            return response()->json(['error' => __('messages.instances.errors.api_unreachable')], 502);
         }
 
         $azuriomUrl = OptionsGeneral::value('azuriom_url');
@@ -371,7 +371,7 @@ class AdminInstanceController extends Controller
         try {
             $api = new \App\Request\AzuriomApi();
         } catch (\RuntimeException $e) {
-            return response()->json(['error' => 'API non configurée'], 503);
+            return response()->json(['error' => __('messages.instances.errors.api_not_configured')], 503);
         }
 
         $allUsers = $api->getUsers();
@@ -413,7 +413,7 @@ class AdminInstanceController extends Controller
         try {
             $api = new \App\Request\AzuriomApi();
         } catch (\RuntimeException $e) {
-            return response()->json(['error' => 'API non configurée'], 503);
+            return response()->json(['error' => __('messages.instances.errors.api_not_configured')], 503);
         }
 
         $allRoles = $api->getRoles();
@@ -598,7 +598,7 @@ class AdminInstanceController extends Controller
             'icon_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
         $modPath = $this->instanceDataPath($instance) . DIRECTORY_SEPARATOR . 'mods' . DIRECTORY_SEPARATOR . $validated['file'];
-        abort_unless(File::isFile($modPath), 422, 'Le fichier de mod sélectionné est introuvable.');
+        abort_unless(File::isFile($modPath), 422, __('messages.instances.errors.mod_file_missing'));
 
         $mod = new OptionsMods();
         $mod->file = $validated['file'];
@@ -689,7 +689,7 @@ class AdminInstanceController extends Controller
         try {
             $api = new \App\Request\AzuriomApi();
         } catch (\RuntimeException $e) {
-            return response()->json(['error' => 'API non configurée'], 503);
+            return response()->json(['error' => __('messages.instances.errors.api_not_configured')], 503);
         }
 
         $allRoles = $api->getRoles();
@@ -729,7 +729,7 @@ class AdminInstanceController extends Controller
                 'max:500',
                 function (string $attribute, mixed $value, \Closure $fail) {
                     if ($value && YouTube::videoId((string) $value) === null) {
-                        $fail('L’URL doit correspondre à une vidéo YouTube valide.');
+                        $fail(__('messages.instances.errors.invalid_youtube_url'));
                     }
                 },
             ],
@@ -741,7 +741,7 @@ class AdminInstanceController extends Controller
 
         if ($request->hasFile('role_background') && !empty($validated['role_video_url'])) {
             return back()->withInput()->withErrors([
-                'role_background' => 'Choisissez une image ou une vidéo, pas les deux.',
+                'role_background' => __('messages.instances.errors.choose_one_media'),
             ]);
         }
 
@@ -753,7 +753,7 @@ class AdminInstanceController extends Controller
             if (!$bg) {
                 if (!$request->hasFile('role_background') && empty($validated['role_video_url'])) {
                     return back()->withInput()->withErrors([
-                        'role_background' => 'Ajoutez une image ou une URL vidéo YouTube.',
+                        'role_background' => __('messages.instances.errors.media_required'),
                     ]);
                 }
                 $bg = new OptionsBg();
