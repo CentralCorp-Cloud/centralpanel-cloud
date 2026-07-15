@@ -9,6 +9,13 @@ class OptionsBg extends Model
     protected $fillable = [
         'role_id',
         'image_path',
-        'role_name'
+        'video_url',
+        'role_name',
+        'instance_id',
     ];
-} 
+
+    public function instance()
+    {
+        return $this->belongsTo(Instance::class);
+    }
+}

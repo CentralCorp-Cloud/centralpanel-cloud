@@ -25,6 +25,18 @@
                 </div>
             </div>
 
+            <div class="panel-muted-surface p-3 mb-4">
+                <div class="form-check form-switch">
+                    <input type="hidden" name="whitelist" value="0">
+                    <input type="checkbox" class="form-check-input" id="whitelist" name="whitelist" value="1"
+                           {{ old('whitelist', $securityOptions->whitelist) ? 'checked' : '' }}>
+                    <label class="form-check-label fw-semibold" for="whitelist">
+                        {{ __('messages.security.whitelist_enable') }}
+                    </label>
+                    <div class="form-text">{{ __('messages.security.whitelist_desc') }}</div>
+                </div>
+            </div>
+
             <div class="mb-4">
                 <label for="maintenance_message" class="form-label">{{ __('messages.security.maintenance_msg') }}</label>
                 <input type="text"

@@ -3,124 +3,218 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
-use App\Models\OptionsBg;
+use App\Models\Instance;
+use App\Models\News;
 use App\Models\OptionsGeneral;
-use App\Models\OptionsIgnore;
-use App\Models\OptionsLoader;
 use App\Models\OptionsRPC;
 use App\Models\OptionsSecurity;
-use App\Models\OptionsServer;
 use App\Models\OptionsUI;
-use App\Models\OptionsWhitelist;
-use App\Models\OptionsWhitelistRole;
+use App\Support\YouTube;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 
 class ApiController extends Controller
 {
-    public function getOptions()
+    public function getOptions(): JsonResponse
     {
-        $domain = request()->getHost();
-        $protocol = request()->isSecure() ? 'https' : 'http';
-        $port = request()->getPort();
-        $baseURL = $protocol . '://' . $domain . (($port && !in_array($port, [80, 443], true)) ? ":$port" : '');
+        $baseUrl = request()->getSchemeAndHttpHost();
+        $apiVersion = request()->query('api_version') === '2' ? 2 : 1;
+        $cacheVersion = Cache::get('launcher_options_version', 1);
+        $cacheKey = 'launcher_options:' . $cacheVersion . ':v' . $apiVersion . ':' . sha1($baseUrl);
 
-        $data = Cache::remember('launcher_options:' . sha1($baseURL), now()->addMinute(), function () use ($baseURL) {
+        $data = Cache::remember($cacheKey, now()->addMinute(), function () use ($baseUrl, $apiVersion) {
             $general = OptionsGeneral::first();
             $security = OptionsSecurity::first();
             $ui = OptionsUI::first();
             $rpc = OptionsRPC::first();
-            $loader = OptionsLoader::first();
-            $server = OptionsServer::where('is_default', true)->first();
-            $ignored = OptionsIgnore::pluck('folder_name')->toArray();
-            $whitelist = OptionsWhitelist::pluck('users')->toArray();
-            $whitelistRoles = OptionsWhitelistRole::pluck('role')->toArray();
-            $roles = OptionsBg::all();
+            $instances = Instance::with(['mods', 'whitelist', 'whitelistRoles', 'ignoredFolders', 'backgrounds'])
+                ->orderByDesc('is_default')
+                ->orderBy('display_name')
+                ->get();
 
-            $roleData = [];
-            foreach ($roles as $role) {
-                $roleData['role' . $role->id] = [
-                    'name' => $role->role_name,
-                    'background' => $baseURL . '/storage/' . $role->image_path,
-                ];
+            $instancesData = $instances
+                ->map(fn (Instance $instance) => $this->serializeInstance($instance, $baseUrl, $general->azuriom_url ?? null))
+                ->values()
+                ->all();
+            $defaultInstance = collect($instancesData)->firstWhere('is_default', true) ?? ($instancesData[0] ?? null);
+            $newsMode = $general->news_mode ?? 'rss';
+            $azuriomNewsUrl = ($general->auth_mode ?? 'azuriom') === 'azuriom'
+                && filled($general->azuriom_url ?? null)
+                ? rtrim($general->azuriom_url, '/') . '/api/posts'
+                : '';
+            if ($newsMode === 'azuriom' && $azuriomNewsUrl === '') {
+                $newsMode = 'builtin';
             }
 
-            return [
-                'maintenance' => $security ? (bool) $security->maintenance : false,
-                'maintenance_message' => $security ? $security->maintenance_message : 'Please define a maintenance message',
-                'game_version' => $loader ? $loader->minecraft_version : '1.7.10',
+            $news = $newsMode === 'builtin'
+                ? News::query()
+                    ->where(function ($query) {
+                        $query->whereNull('published_at')->orWhere('published_at', '<=', now());
+                    })
+                    ->orderByDesc('published_at')
+                    ->orderByDesc('id')
+                    ->limit(20)
+                    ->get()
+                    ->map(fn (News $article) => [
+                        'id' => $article->id,
+                        'title' => $article->title,
+                        'content' => $article->content,
+                        'author' => $article->author ?? '',
+                        'image' => $article->image
+                            ? $baseUrl . '/storage/' . ltrim($article->image, '/')
+                            : '',
+                        'published_at' => ($article->published_at ?? $article->created_at)?->toIso8601String() ?? '',
+                        'url' => $baseUrl,
+                    ])
+                    ->values()
+                    ->all()
+                : [];
+
+            $output = [
+                'auth_mode' => $general->auth_mode ?? 'azuriom',
+                'news_mode' => $newsMode,
+                'news_rss_url' => $general->news_rss_url ?? '',
+                'news_azuriom_url' => $azuriomNewsUrl,
+                'news' => $news,
+                'maintenance' => (bool) ($security->maintenance ?? false),
+                'maintenance_message' => $security->maintenance_message ?? 'Please define a maintenance message',
                 'client_id' => '',
-                'verify' => $general ? (bool) $general->file_verification : true,
-                'modde' => $general ? (bool) $general->mods_enabled : true,
-                'java' => $general ? (bool) $general->embedded_java : true,
-                'dataDirectory' => $general ? $general->game_folder_name : 'centralcorp',
-                'status' => [
-                    'nameServer' => $server ? $server->server_name : 'Syphera',
-                    'ip' => $server ? $server->server_ip : '84.235.238.100',
-                    'port' => $server ? $server->server_port : 25566,
-                ],
-                'loader' => [
-                    'type' => $loader ? $loader->loader_type : 'forge',
-                    'build' => $loader ? $loader->loader_build_version : '1.7.10-10.13.4.1614-1.7.10',
-                    'enable' => $loader ? (bool) $loader->loader_activation : true,
-                ],
-                'ram_min' => $general ? ($general->min_ram / 1024) : 2,
-                'ram_max' => $general ? ($general->max_ram / 1024) : 4,
+                'verify' => (bool) ($general->file_verification ?? true),
+                'modde' => (bool) ($general->mods_enabled ?? true),
+                'java' => (bool) ($general->embedded_java ?? false),
+                'dataDirectory' => $general->game_folder_name ?? 'centralcorp',
+                'ram_min' => ($general->min_ram ?? 2048) / 1024,
+                'ram_max' => ($general->max_ram ?? 4096) / 1024,
                 'online' => 'true',
                 'game_args' => [],
-                'money' => $general ? (bool) $general->money_display : true,
-                'role' => $general ? (bool) $general->role_display : true,
-                'splash' => $ui ? $ui->splash : 'Ceci est du code',
-                'splash_author' => $ui ? $ui->splash_author : 'Riptiaz',
-                'accent_color' => $ui ? $ui->accent_color : '#FFA500',
-                'azauth' => $general ? $general->azuriom_url : null,
-                'rpc_activation' => $rpc ? (bool) $rpc->rpc_activation : true,
-                'rpc_id' => $rpc ? $rpc->rpc_id : '114425717056158109',
-                'rpc_details' => $rpc ? $rpc->rpc_details : 'Dans le launcher',
-                'rpc_state' => $rpc ? $rpc->rpc_state : 'En exploration',
+                'money' => (bool) ($general->money_display ?? false),
+                'role' => (bool) ($general->role_display ?? true),
+                'splash' => $ui->splash ?? '',
+                'splash_author' => $ui->splash_author ?? '',
+                'accent_color' => $ui->accent_color ?? '#FFA500',
+                'azauth' => $general->azuriom_url ?? null,
+                'rpc_activation' => (bool) ($rpc->rpc_activation ?? false),
+                'rpc_id' => $rpc->rpc_id ?? '',
+                'rpc_details' => $rpc->rpc_details ?? '',
+                'rpc_state' => $rpc->rpc_state ?? '',
                 'rpc_large_image' => 'small',
-                'rpc_large_text' => $rpc ? $rpc->rpc_large_text : 'Minecraft',
+                'rpc_large_text' => $rpc->rpc_large_text ?? '',
                 'rpc_small_image' => 'large',
-                'rpc_small_text' => $rpc ? $rpc->rpc_small_text : 'Multiplayer server',
-                'rpc_button1' => $rpc ? $rpc->rpc_button1 : 'Discord',
-                'rpc_button1_url' => $rpc ? $rpc->rpc_button1_url : 'https://discord.gg/VCmNXHvf77',
-                'rpc_button2' => $rpc ? $rpc->rpc_button2 : 'Site Web',
-                'rpc_button2_url' => $rpc ? $rpc->rpc_button2_url : 'https://conflictura.eu',
-                'whitelist_activate' => $security ? (bool) $security->whitelist : false,
-                'alert_activate' => $ui ? (bool) $ui->alert_activation : true,
-                'alert_scroll' => $ui ? (bool) $ui->alert_scroll : true,
-                'alert_msg' => $ui ? $ui->alert_msg : 'Test',
-                'video_activate' => $ui ? (bool) $ui->video_activation : true,
-                'video_url' => $ui ? $this->extractYouTubeVideoId($ui->video_url) : 'a336KPLjsZU',
-                'video_type' => $ui ? $this->detectVideoType($ui->video_url) : 'short',
-                'email_verified' => $general ? (bool) $general->email_verified : false,
-                'server_icon' => $server ? $server->icon_url : null,
-                'role_data' => $roleData,
-                'ignored' => $ignored,
-                'whitelist' => $whitelist,
-                'whitelist_roles' => $whitelistRoles,
+                'rpc_small_text' => $rpc->rpc_small_text ?? '',
+                'rpc_button1' => $rpc->rpc_button1 ?? '',
+                'rpc_button1_url' => $rpc->rpc_button1_url ?? '',
+                'rpc_button2' => $rpc->rpc_button2 ?? '',
+                'rpc_button2_url' => $rpc->rpc_button2_url ?? '',
+                'whitelist_activate' => (bool) ($security->whitelist ?? false),
+                'alert_activate' => (bool) ($ui->alert_activation ?? false),
+                'alert_scroll' => (bool) ($ui->alert_scroll ?? false),
+                'alert_msg' => $ui->alert_msg ?? '',
+                'video_activate' => (bool) ($ui->video_activation ?? false),
+                'video_url' => YouTube::videoId($ui->video_url ?? null) ?? '',
+                'video_type' => YouTube::type($ui->video_url ?? null),
+                'email_verified' => (bool) ($general->email_verified ?? false),
             ];
+
+            if ($apiVersion === 2) {
+                $output['instances'] = $instancesData;
+                return $output;
+            }
+
+            return array_merge($output, $this->legacyInstanceFields($defaultInstance));
         });
 
         return response()->json($data, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
-    private function extractYouTubeVideoId(?string $url): string
+    private function serializeInstance(Instance $instance, string $baseUrl, ?string $azuriomUrl): array
     {
-        if (!$url) {
-            return '';
+        $roleData = [];
+        foreach ($instance->backgrounds as $background) {
+            $roleData['role' . $background->role_id] = [
+                'name' => $background->role_name,
+                'background' => $background->image_path
+                    ? $baseUrl . '/storage/' . ltrim($background->image_path, '/')
+                    : '',
+                'video_url' => YouTube::videoId($background->video_url) ?? '',
+                'video_type' => YouTube::type($background->video_url),
+            ];
         }
 
-        $pattern = str_contains($url, 'youtube.com/shorts/')
-            ? '/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/'
-            : '/(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.*v=|v=)?([a-zA-Z0-9_-]{11})/';
+        $serverIcon = null;
+        if ($instance->server_icon) {
+            $serverIcon = $baseUrl . '/storage/' . ltrim($instance->server_icon, '/');
+        } elseif ($instance->server_icon_url) {
+            $serverIcon = filter_var($instance->server_icon_url, FILTER_VALIDATE_URL)
+                ? $instance->server_icon_url
+                : ($azuriomUrl
+                    ? rtrim($azuriomUrl, '/') . '/storage/' . ltrim(str_replace('storage/', '', $instance->server_icon_url), '/')
+                    : null);
+        }
 
-        preg_match($pattern, $url, $matches);
-
-        return $matches[1] ?? '';
+        return [
+            'name' => $instance->name,
+            'display_name' => $instance->display_name,
+            'description' => $instance->description ?? '',
+            'is_default' => (bool) $instance->is_default,
+            'game_version' => $instance->minecraft_version ?? '',
+            'status' => [
+                'nameServer' => $instance->server_name ?? '',
+                'ip' => $instance->server_ip ?? '',
+                'port' => (int) ($instance->server_port ?? 0),
+            ],
+            'server_icon' => $serverIcon,
+            'loader' => [
+                'type' => $instance->loader_type ?? '',
+                'build' => $instance->loader_build_version ?? '',
+                'enable' => (bool) $instance->loader_activation,
+            ],
+            'background_default' => $instance->background_default
+                ? $baseUrl . '/storage/' . ltrim($instance->background_default, '/')
+                : null,
+            'rpc_details_override' => $instance->rpc_details_override,
+            'whitelist' => $instance->whitelist->pluck('users')->filter()->values()->all(),
+            'whitelist_roles' => $instance->whitelistRoles->pluck('role')->filter()->values()->all(),
+            'ignored' => $instance->ignoredFolders->pluck('folder_name')->filter()->values()->all(),
+            'role_data' => $roleData,
+            'mods' => $instance->mods->map(function ($mod) use ($baseUrl) {
+                return [
+                    'id' => $mod->id,
+                    'file' => $mod->file,
+                    'name' => $mod->name,
+                    'description' => $mod->description ?? '',
+                    'icon' => $mod->icon ? $baseUrl . '/storage/' . ltrim($mod->icon, '/') : '',
+                    'optional' => (bool) $mod->optional,
+                    'recommended' => (bool) $mod->recommended,
+                ];
+            })->values()->all(),
+        ];
     }
 
-    private function detectVideoType(?string $url): string
+    private function legacyInstanceFields(?array $instance): array
     {
-        return $url && str_contains($url, 'youtube.com/shorts/') ? 'short' : 'video';
+        if ($instance === null) {
+            return [
+                'game_version' => '',
+                'status' => ['nameServer' => '', 'ip' => '', 'port' => 0],
+                'loader' => ['type' => '', 'build' => '', 'enable' => false],
+                'server_icon' => null,
+                'role_data' => [],
+                'ignored' => [],
+                'whitelist' => [],
+                'whitelist_roles' => [],
+            ];
+        }
+
+        return [
+            'game_version' => $instance['game_version'],
+            'status' => $instance['status'],
+            'loader' => $instance['loader'],
+            'server_icon' => $instance['server_icon'],
+            'role_data' => $instance['role_data'],
+            'ignored' => $instance['ignored'],
+            'whitelist' => $instance['whitelist'],
+            'whitelist_roles' => $instance['whitelist_roles'],
+        ];
     }
+
 }

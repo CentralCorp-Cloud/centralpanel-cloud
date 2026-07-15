@@ -10,6 +10,10 @@ class OptionsIgnore extends Model
     use HasFactory;
 
     protected $table = 'ignored_folders';
-    protected $fillable = ['folder_name'];
-}
+    protected $fillable = ['folder_name', 'instance_id'];
 
+    public function instance()
+    {
+        return $this->belongsTo(Instance::class);
+    }
+}

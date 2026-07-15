@@ -10,6 +10,10 @@ class OptionsWhitelist extends Model
     use HasFactory;
 
     protected $table = 'whitelist';
-    protected $fillable = ['users'];
-}
+    protected $fillable = ['users', 'instance_id'];
 
+    public function instance()
+    {
+        return $this->belongsTo(Instance::class);
+    }
+}

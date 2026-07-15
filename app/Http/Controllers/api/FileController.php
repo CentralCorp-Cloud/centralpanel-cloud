@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
-use App\Models\OptionsIgnore;
+use App\Models\Instance;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use RecursiveDirectoryIterator;
@@ -14,63 +14,95 @@ class FileController extends Controller
 {
     public function getFiles(): JsonResponse
     {
-        $dir = storage_path('app/public/data');
-        $ignoredFolders = OptionsIgnore::pluck('folder_name')->filter()->values()->all();
+        $apiVersion = request()->query('api_version') === '2' ? 2 : 1;
+        $root = storage_path('app/public/data');
 
-        if (!is_dir($dir)) {
+        if (!is_dir($root)) {
             return response()->json([], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         }
 
+        if ($apiVersion === 2) {
+            $instances = Instance::with('ignoredFolders')->get();
+            $ignoredByInstance = $instances->mapWithKeys(fn (Instance $instance) => [
+                $instance->name => $instance->ignoredFolders->pluck('folder_name')->filter()->values()->all(),
+            ])->all();
+
+            return $this->manifestResponse($root, '', $ignoredByInstance, 'v2');
+        }
+
+        $instance = Instance::with('ignoredFolders')->where('is_default', true)->first()
+            ?? Instance::with('ignoredFolders')->first();
+        if (!$instance) {
+            return response()->json([], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        }
+
+        $instanceRoot = $root . DIRECTORY_SEPARATOR . $instance->name;
+        if (!is_dir($instanceRoot)) {
+            return response()->json([], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        }
+
+        return $this->manifestResponse(
+            $instanceRoot,
+            $instance->name . '/',
+            ['' => $instance->ignoredFolders->pluck('folder_name')->filter()->values()->all()],
+            'legacy:' . $instance->id,
+        );
+    }
+
+    private function manifestResponse(string $root, string $urlPrefix, array $ignoredByInstance, string $mode): JsonResponse
+    {
         $version = Cache::get('launcher_files_version', 1);
-        $signature = $version . ':' . $this->buildDirectorySignature($dir, $ignoredFolders);
+        $signature = $version . ':' . $mode . ':' . $this->buildDirectorySignature($root, $ignoredByInstance);
         $cacheKey = 'launcher_files:' . sha1($signature);
 
-        $files = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($dir, $ignoredFolders) {
-            return $this->dirToArray($dir, '', $ignoredFolders);
+        $files = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($root, $urlPrefix, $ignoredByInstance) {
+            return $this->dirToArray($root, '', $urlPrefix, $ignoredByInstance);
         });
 
         return response()->json($files, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
-    private function buildDirectorySignature(string $dir, array $ignoredFolders): string
+    private function buildDirectorySignature(string $root, array $ignoredByInstance): string
     {
-        $parts = [implode('|', $ignoredFolders)];
+        $parts = [json_encode($ignoredByInstance) ?: ''];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator($root, RecursiveDirectoryIterator::SKIP_DOTS)
         );
 
         /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
-            if ($this->isIgnored($file->getPathname(), $dir, $ignoredFolders)) {
+            $relativePath = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+            if (!$file->isFile() || $this->isIgnored($relativePath, $ignoredByInstance)) {
                 continue;
             }
 
-            if ($file->isFile()) {
-                $relativePath = str_replace('\\', '/', substr($file->getPathname(), strlen($dir) + 1));
-                $parts[] = $relativePath . ':' . $file->getMTime() . ':' . $file->getSize();
-            }
+            $parts[] = $relativePath . ':' . $file->getMTime() . ':' . $file->getSize();
         }
 
         sort($parts);
-
         return implode(';', $parts);
     }
 
-    private function dirToArray(string $dir, string $basePath = '', array $ignoredFolders = []): array
-    {
+    private function dirToArray(
+        string $directory,
+        string $basePath,
+        string $urlPrefix,
+        array $ignoredByInstance,
+    ): array {
         $files = [];
-        $items = scandir($dir) ?: [];
-
-        foreach ($items as $value) {
-            if (in_array($value, ['.', '..'], true) || in_array($value, $ignoredFolders, true)) {
+        foreach (scandir($directory) ?: [] as $value) {
+            if (in_array($value, ['.', '..'], true)) {
                 continue;
             }
 
-            $path = $dir . DIRECTORY_SEPARATOR . $value;
+            $path = $directory . DIRECTORY_SEPARATOR . $value;
             $relativePath = ltrim($basePath . '/' . $value, '/');
+            if ($this->isIgnored($relativePath, $ignoredByInstance)) {
+                continue;
+            }
 
             if (is_dir($path)) {
-                $files = array_merge($files, $this->dirToArray($path, $relativePath, $ignoredFolders));
+                $files = array_merge($files, $this->dirToArray($path, $relativePath, $urlPrefix, $ignoredByInstance));
                 continue;
             }
 
@@ -78,20 +110,25 @@ class FileController extends Controller
                 'path' => $relativePath,
                 'size' => filesize($path),
                 'hash' => hash_file('sha1', $path),
-                'url' => url('storage/data/' . $relativePath),
+                'url' => url('storage/data/' . $urlPrefix . $relativePath),
             ];
         }
 
         return $files;
     }
 
-    private function isIgnored(string $path, string $root, array $ignoredFolders): bool
+    private function isIgnored(string $relativePath, array $ignoredByInstance): bool
     {
-        $relative = str_replace('\\', '/', substr($path, strlen($root) + 1));
+        $normalized = trim(str_replace('\\', '/', $relativePath), '/');
+        $segments = explode('/', $normalized, 2);
+        $instanceName = count($ignoredByInstance) === 1 && array_key_exists('', $ignoredByInstance)
+            ? ''
+            : ($segments[0] ?? '');
+        $instancePath = $instanceName === '' ? $normalized : ($segments[1] ?? '');
 
-        foreach ($ignoredFolders as $ignoredFolder) {
-            $ignoredFolder = trim(str_replace('\\', '/', $ignoredFolder), '/');
-            if ($ignoredFolder !== '' && ($relative === $ignoredFolder || str_starts_with($relative, $ignoredFolder . '/'))) {
+        foreach ($ignoredByInstance[$instanceName] ?? [] as $ignoredFolder) {
+            $ignored = trim(str_replace('\\', '/', (string) $ignoredFolder), '/');
+            if ($ignored !== '' && ($instancePath === $ignored || str_starts_with($instancePath, $ignored . '/'))) {
                 return true;
             }
         }

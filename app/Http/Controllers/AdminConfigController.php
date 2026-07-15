@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Support\PanelOptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 class AdminConfigController extends Controller
@@ -18,22 +19,37 @@ class AdminConfigController extends Controller
 
     public function update(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'app_name' => 'required|string|max:255',
-            'azuriom_url' => 'required|url|max:255',
-            'azuriom_api_key' => 'required|string|max:255',
-        ]);
+            'auth_mode' => 'required|in:azuriom,microsoft',
+        ];
+
+        if ($request->input('auth_mode') === 'azuriom') {
+            $rules['azuriom_url'] = 'required|url|max:255';
+            $rules['azuriom_api_key'] = 'required|string|min:32|max:255';
+        } else {
+            $rules['azuriom_url'] = 'nullable|url|max:255';
+            $rules['azuriom_api_key'] = 'nullable|string|max:255';
+        }
+
+        $validated = $request->validate($rules);
 
         $options = PanelOptions::general();
-        $options->fill([
-            'azuriom_url' => $validated['azuriom_url'],
-            'azuriom_api_key' => $validated['azuriom_api_key'],
-        ])->save();
+        $optionValues = [
+            'auth_mode' => $validated['auth_mode'],
+            'azuriom_url' => $validated['azuriom_url'] ?? null,
+            'azuriom_api_key' => $validated['azuriom_api_key'] ?? null,
+        ];
+        if ($validated['auth_mode'] === 'microsoft' && $options->news_mode === 'azuriom') {
+            $optionValues['news_mode'] = 'builtin';
+        }
+        $options->fill($optionValues)->save();
 
         if ($validated['app_name'] !== config('app.name')) {
             $this->updateEnvValue('APP_NAME', '"' . str_replace('"', '\"', $validated['app_name']) . '"');
             Artisan::call('config:clear');
         }
+        Cache::forever('launcher_options_version', (int) Cache::get('launcher_options_version', 1) + 1);
 
         return redirect()->route('admin.config')->with('success', __('messages.flash.config_updated'));
     }

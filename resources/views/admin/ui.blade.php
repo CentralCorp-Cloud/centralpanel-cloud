@@ -42,6 +42,7 @@
                 </div>
                 <label for="video_url" class="form-label">{{ __('messages.ui.video_url') }}</label>
                 <input type="url" class="form-control" id="video_url" name="video_url" value="{{ old('video_url', $uiOptions->video_url) }}" required>
+                <div class="form-text">{{ __('messages.ui.video_help') }}</div>
             </div>
 
             <div class="panel-muted-surface p-3 mb-4">

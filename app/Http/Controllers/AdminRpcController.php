@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Support\PanelOptions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AdminRpcController extends Controller
 {
@@ -30,6 +31,7 @@ class AdminRpcController extends Controller
         ]);
 
         PanelOptions::rpc()->update($validated);
+        Cache::forever('launcher_options_version', (int) Cache::get('launcher_options_version', 1) + 1);
 
         return redirect()->route('admin.rpc')->with('success', __('messages.flash.rpc_updated'));
     }

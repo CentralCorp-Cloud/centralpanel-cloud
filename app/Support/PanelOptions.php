@@ -13,6 +13,9 @@ class PanelOptions
     public static function general(): OptionsGeneral
     {
         return OptionsGeneral::firstOrCreate([], [
+            'auth_mode' => 'azuriom',
+            'news_mode' => 'rss',
+            'news_rss_url' => null,
             'mods_enabled' => true,
             'file_verification' => true,
             'embedded_java' => false,

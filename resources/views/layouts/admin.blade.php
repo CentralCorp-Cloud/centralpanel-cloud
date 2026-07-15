@@ -33,26 +33,19 @@
             ['route' => 'admin.index', 'icon' => 'bi-speedometer2', 'label' => __('messages.dashboard.title'), 'match' => 'admin.index'],
             ['route' => 'admin.users', 'icon' => 'bi-people', 'label' => __('messages.sidebar.users'), 'match' => 'admin.users*'],
             ['route' => 'admin.config', 'icon' => 'bi-gear', 'label' => __('messages.sidebar.config'), 'match' => 'admin.config*'],
-            ['route' => 'admin.file-manager', 'icon' => 'bi-folder', 'label' => __('messages.sidebar.file_manager'), 'match' => 'admin.file-manager'],
+            ['route' => 'admin.instances.index', 'icon' => 'bi-hdd-stack', 'label' => __('messages.sidebar.instances'), 'match' => 'admin.instances.*'],
             ['route' => 'admin.update', 'icon' => 'bi-cloud-arrow-up', 'label' => __('messages.sidebar.update'), 'match' => 'admin.update'],
         ],
         __('messages.sidebar.configuration') => [
             ['route' => 'admin.general', 'icon' => 'bi-sliders', 'label' => __('messages.sidebar.general'), 'match' => 'admin.general*'],
+            ['route' => 'admin.news.index', 'icon' => 'bi-newspaper', 'label' => __('messages.sidebar.news'), 'match' => 'admin.news.*'],
             ['route' => 'admin.rpc', 'icon' => 'bi-discord', 'label' => __('messages.sidebar.rpc'), 'match' => 'admin.rpc*'],
-            ['route' => 'admin.server', 'icon' => 'bi-hdd-network', 'label' => __('messages.sidebar.server'), 'match' => 'admin.server*'],
         ],
         __('messages.sidebar.security_header') => [
             ['route' => 'admin.security', 'icon' => 'bi-shield-lock', 'label' => __('messages.sidebar.security_link'), 'match' => 'admin.security*'],
-            ['route' => 'admin.whitelist', 'icon' => 'bi-list-check', 'label' => __('messages.sidebar.whitelist'), 'match' => 'admin.whitelist*'],
-        ],
-        __('messages.sidebar.client') => [
-            ['route' => 'admin.mods', 'icon' => 'bi-box-seam', 'label' => __('messages.sidebar.optional_mods'), 'match' => 'admin.mods*'],
-            ['route' => 'admin.loader', 'icon' => 'bi-cloud-arrow-down', 'label' => __('messages.sidebar.loader'), 'match' => 'admin.loader*'],
-            ['route' => 'admin.ignore', 'icon' => 'bi-slash-circle', 'label' => __('messages.sidebar.ignore'), 'match' => 'admin.ignore*'],
         ],
         __('messages.sidebar.interface') => [
             ['route' => 'admin.ui', 'icon' => 'bi-window-sidebar', 'label' => __('messages.sidebar.ui'), 'match' => 'admin.ui*'],
-            ['route' => 'admin.bg', 'icon' => 'bi-image', 'label' => __('messages.sidebar.background'), 'match' => 'admin.bg*'],
         ],
     ];
 @endphp

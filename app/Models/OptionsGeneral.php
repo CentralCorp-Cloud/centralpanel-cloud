@@ -23,6 +23,9 @@ class OptionsGeneral extends Model
         'azuriom_api_key',
         'min_ram',
         'max_ram',
+        'auth_mode',
+        'news_mode',
+        'news_rss_url',
     ];
 
     protected $casts = [

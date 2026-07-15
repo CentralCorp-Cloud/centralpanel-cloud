@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Instance;
 use App\Models\OptionsGeneral;
 use App\Models\OptionsIgnore;
-use App\Models\OptionsLoader;
 use App\Models\OptionsMods;
 use App\Models\OptionsSecurity;
-use App\Models\OptionsServer;
 use App\Models\OptionsWhitelist;
 use App\Models\OptionsWhitelistRole;
 use App\Models\User;
@@ -36,7 +35,7 @@ class DashboardController extends Controller
     {
         $general = OptionsGeneral::first();
         $security = OptionsSecurity::first();
-        $loader = OptionsLoader::first();
+        $defaultInstance = Instance::where('is_default', true)->first() ?? Instance::first();
 
         return [
             'counts' => [
@@ -57,7 +56,7 @@ class DashboardController extends Controller
                 ],
                 [
                     'label' => __('messages.dashboard.stats_servers'),
-                    'value' => OptionsServer::count(),
+                    'value' => Instance::count(),
                     'icon' => 'bi-hdd-network',
                 ],
             ],
@@ -76,7 +75,7 @@ class DashboardController extends Controller
                 ],
                 [
                     'label' => __('messages.dashboard.status_loader'),
-                    'enabled' => (bool) ($loader?->loader_activation),
+                    'enabled' => (bool) ($defaultInstance?->loader_activation),
                 ],
             ],
         ];

@@ -9,6 +9,10 @@ class OptionsWhitelistRole extends Model
     use HasFactory;
 
     protected $table = 'whitelist_roles';
-    protected $fillable = ['role'];
-}
+    protected $fillable = ['role', 'instance_id'];
 
+    public function instance()
+    {
+        return $this->belongsTo(Instance::class);
+    }
+}
