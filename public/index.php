@@ -8,7 +8,7 @@ define('LARAVEL_START', microtime(true));
 $envPath = __DIR__ . '/../.env';
 $envExamplePath = __DIR__ . '/../.env.example';
 
-if (!file_exists($envPath) && file_exists($envExamplePath)) {
+if (getenv('PANEL_MANAGED') !== 'true' && !file_exists($envPath) && file_exists($envExamplePath)) {
     copy($envExamplePath, $envPath);
 }
 
