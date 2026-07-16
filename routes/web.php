@@ -17,15 +17,30 @@ use App\Http\Controllers\InstallController;
 use App\Http\Controllers\PanelController;
 use App\Http\Controllers\users\AdminUserController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Auth::routes(['register' => false]);
 
+Route::get('/healthz', function () {
+    try {
+        DB::connection()->select('select 1');
+
+        return response()->json([
+            'status' => \App\Support\PanelInstallation::isInstalled() ? 'ok' : 'installing',
+        ], \App\Support\PanelInstallation::isInstalled() ? 200 : 503);
+    } catch (Throwable) {
+        return response()->json(['status' => 'degraded'], 503);
+    }
+});
+
 Route::get('/', [PanelController::class, 'root']);
 
-Route::get('/install', [InstallController::class, 'showDatabase'])->name('install.database');
-Route::post('/install', [InstallController::class, 'install'])->name('install.store');
-Route::get('/install/finish', [InstallController::class, 'finish'])->name('install.finish');
+if (! config('app.managed')) {
+    Route::get('/install', [InstallController::class, 'showDatabase'])->name('install.database');
+    Route::post('/install', [InstallController::class, 'install'])->name('install.store');
+    Route::get('/install/finish', [InstallController::class, 'finish'])->name('install.finish');
+}
 
 Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.index');

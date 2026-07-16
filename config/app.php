@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\SecretFile;
+
 return [
 
     /*
@@ -40,6 +42,7 @@ return [
     */
 
     'debug' => (bool) env('APP_DEBUG', false),
+    'managed' => filter_var(env('PANEL_MANAGED', false), FILTER_VALIDATE_BOOL),
     'version' => \App\Support\PanelVersion::current(),
     /*
     |--------------------------------------------------------------------------
@@ -97,7 +100,7 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
-    'key' => env('APP_KEY'),
+    'key' => SecretFile::read(env('APP_KEY_FILE'), env('APP_KEY')),
 
     'previous_keys' => [
         ...array_filter(

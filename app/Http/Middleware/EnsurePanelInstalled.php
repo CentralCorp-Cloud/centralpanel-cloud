@@ -11,7 +11,15 @@ class EnsurePanelInstalled
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($this->isInstalled() || $this->shouldBypass($request)) {
+        if ($this->isInstalled() || $request->is('up') || $request->is('healthz')) {
+            return $next($request);
+        }
+
+        if (config('app.managed')) {
+            abort(503, 'Managed panel installation is still in progress.');
+        }
+
+        if ($this->shouldBypass($request)) {
             return $next($request);
         }
 
@@ -27,7 +35,6 @@ class EnsurePanelInstalled
     {
         return $request->is('install')
             || $request->is('install/*')
-            || $request->is('up')
             || $request->expectsJson();
     }
 }
