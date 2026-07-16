@@ -26,7 +26,8 @@ COPY --from=vendor /src/bootstrap/cache ./bootstrap/cache
 COPY --from=assets /src/public/build ./public/build
 COPY Caddyfile /etc/frankenphp/Caddyfile
 COPY docker/entrypoint.sh /usr/local/bin/centralpanel-entrypoint
-RUN chmod 0755 /usr/local/bin/centralpanel-entrypoint \
+RUN setcap -r /usr/local/bin/frankenphp \
+    && chmod 0755 /usr/local/bin/centralpanel-entrypoint \
     && mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
     && ln -s /app/storage/app/public /app/public/storage \
     && chown -R 10001:10001 storage bootstrap/cache
