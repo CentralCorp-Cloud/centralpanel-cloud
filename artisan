@@ -1,6 +1,7 @@
 #!/usr/bin/env php
 <?php
 
+use App\Support\AutoInstallArguments;
 use Symfony\Component\Console\Input\ArgvInput;
 
 define('LARAVEL_START', microtime(true));
@@ -10,6 +11,6 @@ require __DIR__.'/vendor/autoload.php';
 
 // Bootstrap Laravel and handle the command...
 $status = (require_once __DIR__.'/bootstrap/app.php')
-    ->handleCommand(new ArgvInput);
+    ->handleCommand(new ArgvInput(AutoInstallArguments::normalize($_SERVER['argv'] ?? [])));
 
 exit($status);

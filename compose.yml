@@ -1,0 +1,28 @@
+services:
+  panel:
+    image: "ghcr.io/centralcorp-cloud/centralpanel-cloud:${PANEL_VERSION:-latest}"
+    pull_policy: "${PANEL_PULL_POLICY:-always}"
+    ports:
+      - "${PANEL_PORT:-8080}:80"
+    environment:
+      APP_URL: "${APP_URL:-http://localhost:8080}"
+      AUTO_INSTALL: "${AUTO_INSTALL:-false}"
+      AUTO_INSTALL_PSEUDO: "${AUTO_INSTALL_PSEUDO:-}"
+      AUTO_INSTALL_MAIL: "${AUTO_INSTALL_MAIL:-}"
+      AUTO_INSTALL_PASSWORD: "${AUTO_INSTALL_PASSWORD:-}"
+    volumes:
+      - panel_database:/var/www/html/database
+      - panel_storage:/var/www/html/storage
+      - panel_runtime:/var/www/runtime
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  panel_database:
+  panel_storage:
+  panel_runtime:

@@ -1,0 +1,5 @@
+services:
+  panel:
+    build:
+      context: .
+    pull_policy: build
