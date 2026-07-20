@@ -11,7 +11,7 @@ class EnsurePanelInstalled
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($this->isInstalled() || $this->shouldBypass($request)) {
+        if ($this->shouldBypass($request) || $this->isInstalled()) {
             return $next($request);
         }
 

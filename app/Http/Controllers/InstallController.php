@@ -53,6 +53,8 @@ class InstallController extends Controller
         $this->hasRequirements = !in_array(false, $this->requirements, true);
 
         $this->middleware(function (Request $request, callable $next) {
+            abort_if(config('centralpanel.managed', false), 404);
+
             if (PanelInstallation::ensureInstalledState()) {
                 return redirect('/')->with('error', __('messages.install.already_installed'));
             }
@@ -325,7 +327,7 @@ class InstallController extends Controller
             }
 
             // Step 2: Run migrations
-            Artisan::call('migrate:fresh', ['--force' => true]);
+            Artisan::call('migrate', ['--force' => true]);
 
             // Step 3: Create admin user
             $user = User::create([

@@ -1,5 +1,12 @@
 <?php
 
+use App\Support\SecretFile;
+
+$appKeyFile = (string) env('APP_KEY_FILE', '');
+$appKey = $appKeyFile !== ''
+    ? SecretFile::readValue($appKeyFile, 'APP_KEY_FILE')
+    : env('APP_KEY');
+
 return [
 
     /*
@@ -97,7 +104,7 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
-    'key' => env('APP_KEY'),
+    'key' => $appKey,
 
     'previous_keys' => [
         ...array_filter(

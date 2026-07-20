@@ -28,6 +28,12 @@ class ResetInstallCommand extends Command
      */
     public function handle()
     {
+        if (config('centralpanel.managed', false)) {
+            $this->error('install:reset est désactivé en mode CentralCloud managé.');
+
+            return self::FAILURE;
+        }
+
         if (!$this->option('force')) {
             $confirmed = $this->confirm('Êtes-vous sûr de vouloir réinitialiser l\'installation ? Cela supprimera toutes les données !', false);
             

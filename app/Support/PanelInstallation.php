@@ -23,7 +23,7 @@ final class PanelInstallation
             return true;
         }
 
-        if (!self::databaseLooksInstalled()) {
+        if (!self::hasMarker() && !self::databaseHasUsers()) {
             return false;
         }
 
@@ -41,7 +41,6 @@ final class PanelInstallation
             $content .= "\nAdmin: {$adminEmail}";
         }
 
-        File::ensureDirectoryExists(storage_path());
         File::put(storage_path('installed'), $content);
     }
 
@@ -52,19 +51,21 @@ final class PanelInstallation
         return $key !== '' && $key !== self::TEMP_KEY;
     }
 
-    private static function hasMarker(): bool
+    public static function hasMarker(): bool
     {
-        return File::exists(storage_path('installed'));
+        $path = storage_path('installed');
+
+        return File::isFile($path) && File::size($path) > 0;
     }
 
-    private static function databaseLooksInstalled(): bool
+    public static function databaseHasUsers(): bool
     {
         try {
             $schema = DB::connection()->getSchemaBuilder();
 
             return $schema->hasTable('users') && DB::table('users')->exists();
-        } catch (\Throwable $e) {
-            Log::debug('Unable to inspect panel installation database state', ['error' => $e->getMessage()]);
+        } catch (\Throwable) {
+            Log::debug('Unable to inspect panel installation database state.');
 
             return false;
         }
@@ -73,6 +74,10 @@ final class PanelInstallation
     private static function ensureRealAppKey(): void
     {
         if (self::hasRealAppKey()) {
+            return;
+        }
+
+        if ((string) env('APP_KEY_FILE', '') !== '') {
             return;
         }
 
@@ -85,8 +90,8 @@ final class PanelInstallation
 
         try {
             DotenvEditor::updateFile(base_path('.env'), ['APP_KEY' => $key]);
-        } catch (\Throwable $e) {
-            Log::warning('Unable to repair APP_KEY in .env', ['error' => $e->getMessage()]);
+        } catch (\Throwable) {
+            Log::warning('Unable to repair APP_KEY in .env.');
         }
     }
 }

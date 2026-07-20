@@ -15,6 +15,15 @@ class UpdateController extends Controller
     public function index(Request $request)
     {
         $currentVersion = PanelVersion::current();
+
+        if (config('centralpanel.managed', false)) {
+            return view('admin.update', [
+                'info' => null,
+                'hasUpdate' => false,
+                'currentVersion' => $currentVersion,
+            ]);
+        }
+
         $manager = new UpdateManager(new Filesystem(), $currentVersion);
         $info = $manager->fetchUpdateInfo();
         $hasUpdate = $manager->hasUpdate($info);
@@ -27,6 +36,10 @@ class UpdateController extends Controller
 
     public function update(Request $request)
     {
+        if (config('centralpanel.managed', false)) {
+            return redirect()->back()->with('error', 'En mode CentralCloud, les mises à jour sont appliquées par remplacement de l’image.');
+        }
+
         $currentVersion = PanelVersion::current();
         $manager = new UpdateManager(new Filesystem(), $currentVersion);
         try {

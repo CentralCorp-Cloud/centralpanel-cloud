@@ -1,0 +1,73 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: centralpanel
+      POSTGRES_USER: centralpanel
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U centralpanel -d centralpanel"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  panel:
+    image: "${CENTRALPANEL_TEST_IMAGE:-centralpanel-cloud:agent-test}"
+    user: "10001:10001"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      APP_ENV: production
+      APP_URL: https://panel.test.invalid
+      CENTRALPANEL_MODE: centralcloud
+      CLOUD_PROJECT_ID: integration-test
+      PANEL_MANAGED: "true"
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: centralpanel
+      PGUSER: centralpanel
+      DB_PASSWORD_FILE: /run/secrets/postgres_password
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+      APP_KEY_FILE: /run/secrets/app_key
+      PANEL_BOOTSTRAP_FILE: /run/secrets/panel_bootstrap.json
+      CENTRALCLOUD_INTERNAL_SECRET_FILE: /run/secrets/internal_secret
+    secrets:
+      - postgres_password
+      - app_key
+      - source: panel_bootstrap
+        target: panel_bootstrap.json
+      - internal_secret
+    tmpfs:
+      - /tmp:mode=1777
+      - /run:mode=1777
+    volumes:
+      - panel_data:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:8080/up"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+secrets:
+  postgres_password:
+    file: "${CENTRALPANEL_TEST_SECRETS_DIR}/postgres_password"
+  app_key:
+    file: "${CENTRALPANEL_TEST_SECRETS_DIR}/app_key"
+  panel_bootstrap:
+    file: "${CENTRALPANEL_TEST_SECRETS_DIR}/panel_bootstrap.json"
+  internal_secret:
+    file: "${CENTRALPANEL_TEST_SECRETS_DIR}/internal_secret"
+
+volumes:
+  panel_data:
+  postgres_data:

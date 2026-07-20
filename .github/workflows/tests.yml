@@ -5,46 +5,32 @@ on:
   pull_request:
 
 jobs:
-  # tests:
-  #   strategy:
-  #     matrix:
-  #       php-version: [ '8.2', '8.3', '8.4' ]
+  tests:
+    name: PHP and CentralCloud Docker contract
+    runs-on: ubuntu-latest
 
-  #   name: PHP ${{ matrix.php-version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
 
-  #   runs-on: ubuntu-latest
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: bcmath, curl, mbstring, pdo, pdo_pgsql, pdo_sqlite, xml, xmlwriter, zip
+          tools: composer:v2
 
-  #   services:
-  #     mysql:
-  #       image: mysql:5.7
-  #       env:
-  #         MYSQL_ALLOW_EMPTY_PASSWORD: yes
-  #         MYSQL_DATABASE: centralcorp
-  #       ports:
-  #         - 3306:3306
-  #       options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      - name: Install PHP dependencies
+        run: composer install --ansi --no-interaction --no-progress --prefer-dist
 
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
+      - name: Run PHP tests
+        run: composer test
 
-  #     - name: Setup PHP ${{ matrix.php-version }}
-  #       uses: shivammathur/setup-php@v2
-  #       with:
-  #         php-version: ${{ matrix.php-version }}
-  #         extensions: pdo, sqlite, pdo_sqlite, bcmath, mbstring, curl, libxml, zip, intl, gd
-  #         tools: composer
+      - name: Build container image
+        run: docker build -t centralpanel-cloud:agent-test .
 
-  #     - name: Install dependencies
-  #       run: composer install --ansi --no-interaction --no-progress --prefer-dist
-
-  #     - name: Run tests
-  #       run: vendor/bin/phpunit
-  #       env:
-  #         APP_KEY: "base64:dpPUwuuA5ojUpdVwUJcPT13NdOe+RSM/1QXSW/VuJIc="
-  #         DB_CONNECTION: mysql
-  #         DB_DATABASE: centralcorp
-  #         DB_USERNAME: root
+      - name: Validate CentralCloud runtime contract
+        run: composer test:docker
 
   assets:
     name: Bundle assets

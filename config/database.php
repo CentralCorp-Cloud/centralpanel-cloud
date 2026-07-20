@@ -1,7 +1,18 @@
 <?php
 
 use App\Support\DatabasePath;
+use App\Support\SecretFile;
 use Illuminate\Support\Str;
+
+$managed = filter_var(env('PANEL_MANAGED', false), FILTER_VALIDATE_BOOL);
+$passwordFile = (string) (env('DB_PASSWORD_FILE') ?: env('PGPASSWORD_FILE', ''));
+$databasePassword = $passwordFile !== ''
+    ? SecretFile::readValue($passwordFile, env('DB_PASSWORD_FILE') ? 'DB_PASSWORD_FILE' : 'PGPASSWORD_FILE')
+    : env('DB_PASSWORD', '');
+
+if ($managed && $passwordFile === '') {
+    throw new RuntimeException('DB_PASSWORD_FILE ou PGPASSWORD_FILE est obligatoire en mode managé.');
+}
 
 return [
 
@@ -17,7 +28,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => $managed ? 'pgsql' : env('DB_CONNECTION', 'sqlite'),
 
     /*
     |--------------------------------------------------------------------------
@@ -50,7 +61,7 @@ return [
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'password' => $databasePassword,
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
@@ -70,7 +81,7 @@ return [
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'password' => $databasePassword,
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
@@ -86,11 +97,11 @@ return [
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'host' => $managed ? env('PGHOST') : env('DB_HOST', '127.0.0.1'),
+            'port' => $managed ? env('PGPORT', '5432') : env('DB_PORT', '5432'),
+            'database' => $managed ? env('PGDATABASE') : env('DB_DATABASE', 'laravel'),
+            'username' => $managed ? env('PGUSER') : env('DB_USERNAME', 'root'),
+            'password' => $databasePassword,
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
@@ -105,7 +116,7 @@ return [
             'port' => env('DB_PORT', '1433'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'password' => $databasePassword,
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,

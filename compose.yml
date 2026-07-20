@@ -2,27 +2,31 @@ services:
   panel:
     image: "ghcr.io/centralcorp-cloud/centralpanel-cloud:${PANEL_VERSION:-latest}"
     pull_policy: "${PANEL_PULL_POLICY:-always}"
+    user: "10001:10001"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     ports:
-      - "${PANEL_PORT:-8080}:80"
+      - "${PANEL_PORT:-8080}:8080"
     environment:
       APP_URL: "${APP_URL:-http://localhost:8080}"
       AUTO_INSTALL: "${AUTO_INSTALL:-false}"
-      AUTO_INSTALL_PSEUDO: "${AUTO_INSTALL_PSEUDO:-}"
-      AUTO_INSTALL_MAIL: "${AUTO_INSTALL_MAIL:-}"
-      AUTO_INSTALL_PASSWORD: "${AUTO_INSTALL_PASSWORD:-}"
+      AUTO_INSTALL_BOOTSTRAP_FILE: "${AUTO_INSTALL_BOOTSTRAP_FILE:-/run/secrets/panel_bootstrap.json}"
+    tmpfs:
+      - /tmp:mode=1777
+      - /run:mode=1777
     volumes:
-      - panel_database:/var/www/html/database
-      - panel_storage:/var/www/html/storage
-      - panel_runtime:/var/www/runtime
+      - panel_data:/app/storage
+      - ./docker/secrets:/run/secrets:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1/up"]
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:8080/up"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 30s
 
 volumes:
-  panel_database:
-  panel_storage:
-  panel_runtime:
+  panel_data:

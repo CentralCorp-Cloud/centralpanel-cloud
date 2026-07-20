@@ -1,46 +1,53 @@
 #!/bin/sh
 set -eu
 
-runtime_env=/var/www/runtime/.env
+umask 077
 
-if [ ! -f "$runtime_env" ]; then
+persistent_root=/app/storage
+runtime_dir="$persistent_root/runtime"
+runtime_env="$runtime_dir/.env"
+
+mkdir -p \
+    "$persistent_root/laravel-storage/app/public" \
+    "$persistent_root/laravel-storage/framework/cache/data" \
+    "$persistent_root/laravel-storage/framework/sessions" \
+    "$persistent_root/laravel-storage/framework/views" \
+    "$persistent_root/laravel-storage/logs" \
+    "$persistent_root/bootstrap-cache" \
+    "$runtime_dir" \
+    "$persistent_root/database" \
+    /run/apache2 \
+    /run/lock/apache2 \
+    /tmp/apache2-logs
+
+if [ ! -e "$runtime_env" ]; then
     cp /var/www/html/.env.example "$runtime_env"
 fi
 
-ln -sfn "$runtime_env" /var/www/html/.env
-
-mkdir -p \
-    /var/www/html/database \
-    /var/www/html/storage/app/public \
-    /var/www/html/storage/framework/cache/data \
-    /var/www/html/storage/framework/sessions \
-    /var/www/html/storage/framework/views \
-    /var/www/html/storage/logs \
-    /var/www/html/bootstrap/cache
-
-chown -R www-data:www-data \
-    /var/www/runtime \
-    /var/www/html/database \
-    /var/www/html/storage \
-    /var/www/html/bootstrap/cache
-
-case "${AUTO_INSTALL:-false}" in
+case "${PANEL_MANAGED:-false}" in
     1|true|TRUE|yes|YES)
-        if [ -z "${AUTO_INSTALL_PSEUDO:-}" ] || [ -z "${AUTO_INSTALL_MAIL:-}" ] || [ -z "${AUTO_INSTALL_PASSWORD:-}" ]; then
-            echo "AUTO_INSTALL nécessite AUTO_INSTALL_PSEUDO, AUTO_INSTALL_MAIL et AUTO_INSTALL_PASSWORD." >&2
-            exit 1
-        fi
+        rm -f "$persistent_root/bootstrap-cache/config.php"
+        ;;
+    *)
+        case "${AUTO_INSTALL:-false}" in
+            1|true|TRUE|yes|YES)
+                bootstrap_file=${AUTO_INSTALL_BOOTSTRAP_FILE:-}
 
-        php artisan auto:install \
-            -p "$AUTO_INSTALL_PSEUDO" \
-            -m "$AUTO_INSTALL_MAIL" \
-            -pass "$AUTO_INSTALL_PASSWORD"
-
-        chown -R www-data:www-data \
-            /var/www/runtime \
-            /var/www/html/database \
-            /var/www/html/storage \
-            /var/www/html/bootstrap/cache
+                if [ -n "$bootstrap_file" ] && [ -f "$bootstrap_file" ]; then
+                    php artisan auto:install --bootstrap-file="$bootstrap_file" --no-interaction
+                elif [ -n "${AUTO_INSTALL_PSEUDO:-}" ] && [ -n "${AUTO_INSTALL_MAIL:-}" ] && [ -n "${AUTO_INSTALL_PASSWORD:-}" ]; then
+                    legacy_bootstrap=/tmp/centralpanel-auto-install.json
+                    php -r '$data = ["name" => getenv("AUTO_INSTALL_PSEUDO"), "email" => getenv("AUTO_INSTALL_MAIL"), "password" => getenv("AUTO_INSTALL_PASSWORD")]; if (file_put_contents($argv[1], json_encode($data, JSON_THROW_ON_ERROR), LOCK_EX) === false) { exit(1); }' "$legacy_bootstrap"
+                    php artisan auto:install --bootstrap-file="$legacy_bootstrap" --no-interaction
+                    rm -f "$legacy_bootstrap"
+                elif [ -n "$bootstrap_file" ]; then
+                    php artisan auto:install --bootstrap-file="$bootstrap_file" --no-interaction
+                else
+                    echo "AUTO_INSTALL nécessite AUTO_INSTALL_BOOTSTRAP_FILE ou les trois variables historiques." >&2
+                    exit 1
+                fi
+                ;;
+        esac
         ;;
 esac
 

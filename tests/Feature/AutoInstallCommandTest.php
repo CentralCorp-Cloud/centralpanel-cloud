@@ -103,4 +103,77 @@ class AutoInstallCommandTest extends TestCase
         $this->assertTrue(User::query()->where('email', 'first@example.com')->exists());
         $this->assertFalse(User::query()->where('email', 'second@example.com')->exists());
     }
+
+    public function test_it_installs_from_a_strict_bootstrap_file_without_exposing_the_password(): void
+    {
+        $password = 'Bootstrap-password-123!';
+        $path = storage_path('framework/testing/panel-bootstrap.json');
+        File::ensureDirectoryExists(dirname($path));
+        File::put($path, json_encode([
+            'name' => 'Bootstrap Admin',
+            'email' => 'bootstrap@example.com',
+            'password' => $password,
+        ], JSON_THROW_ON_ERROR));
+
+        try {
+            $this->artisan('auto:install', ['--bootstrap-file' => $path, '--no-interaction' => true])
+                ->doesntExpectOutputToContain($password)
+                ->assertSuccessful();
+            $this->assertTrue(User::query()->where('email', 'bootstrap@example.com')->exists());
+        } finally {
+            File::delete($path);
+        }
+    }
+
+    public function test_it_rejects_unknown_bootstrap_fields_without_exposing_values(): void
+    {
+        $password = 'Unknown-field-password-123!';
+        $path = storage_path('framework/testing/panel-bootstrap-invalid.json');
+        File::ensureDirectoryExists(dirname($path));
+        File::put($path, json_encode([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'password' => $password,
+            'is_admin' => true,
+        ], JSON_THROW_ON_ERROR));
+
+        try {
+            $this->artisan('auto:install', ['--bootstrap-file' => $path, '--no-interaction' => true])
+                ->doesntExpectOutputToContain($password)
+                ->assertFailed();
+            $this->assertFalse(Schema::hasTable('users') && User::query()->exists());
+        } finally {
+            File::delete($path);
+        }
+    }
+
+    public function test_existing_user_without_marker_is_never_overwritten(): void
+    {
+        Schema::create('users', function ($table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->boolean('is_admin')->default(false);
+            $table->timestamp('email_verified_at')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+        });
+        User::query()->create([
+            'name' => 'Existing',
+            'email' => 'existing@example.com',
+            'password' => 'Existing-password-123!',
+            'is_admin' => true,
+        ]);
+        File::delete(storage_path('installed'));
+
+        $this->artisan('auto:install', [
+            '--pseudo' => 'Replacement',
+            '--mail' => 'replacement@example.com',
+            '--pass' => 'Replacement-password-123!',
+        ])->assertSuccessful();
+
+        $this->assertSame(1, User::query()->count());
+        $this->assertTrue(User::query()->where('email', 'existing@example.com')->exists());
+    }
 }

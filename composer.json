@@ -28,6 +28,12 @@
         }
     },
     "scripts": {
+        "test": [
+            "@php artisan test"
+        ],
+        "test:docker": [
+            "sh tests/docker/centralcloud-integration.sh"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
