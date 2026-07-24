@@ -88,7 +88,7 @@ jobs:
             echo "- Version: \`${PANEL_VERSION}\`"
             echo "- Installable ZIP: \`${ZIP_NAME}\`"
             echo "- CI artifacts are wrapped by GitHub Actions. Extract the artifact first, then use the ZIP inside."
-            echo "- For a real release/update package, push a tag like \`v1.0.9\`; the ZIP will be attached directly to the GitHub Release."
+            echo "- For a real release/update package, push a SemVer tag like \`v1.1.13\`; the ZIP will be attached directly to the GitHub Release."
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Attach ZIP to GitHub release

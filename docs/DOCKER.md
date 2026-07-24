@@ -57,7 +57,7 @@ Le Node Agent peut lancer l’image avec :
 ```bash
 docker run -d \
   --read-only \
-  --user 10001:10001 \
+  --user SERVICE_UID:SERVICE_GID \
   --cap-drop ALL \
   --security-opt no-new-privileges \
   --tmpfs /tmp:mode=1777 \
@@ -68,7 +68,19 @@ docker run -d \
 
 L’agent ajoute ses montages de secrets en lecture seule sous `/run/secrets` et un réseau privé vers PostgreSQL. Il ne publie aucun port hôte ; le proxy contacte le port interne `8080`.
 
-Le volume `/app/storage` doit être inscriptible par `10001:10001`, et les fichiers de `/run/secrets` doivent être lisibles par cet UID tout en restant en lecture seule. L’image ne tente volontairement aucun changement de propriétaire ou de permissions au démarrage.
+`SERVICE_UID:SERVICE_GID` correspond à l’identité numérique non-root du service
+Node Agent sur l’hôte. L’installateur la détecte avec `id -u` et `id -g`, puis
+l’Agent l’utilise pour les panels et les utilitaires de sauvegarde PostgreSQL.
+Le volume `/app/storage` doit être inscriptible par cette identité, et les
+fichiers de `/run/secrets` doivent être lisibles par cet UID tout en restant en
+lecture seule. L’image conserve `10001:10001` comme identité autonome par
+défaut, mais ne tente volontairement aucun changement de propriétaire ou de
+permissions au démarrage.
+
+En mode `PANEL_MANAGED=true`, Laravel accepte les en-têtes de proxy transmis
+par Traefik. Traefik doit notamment définir `X-Forwarded-Proto=https`,
+`X-Forwarded-Host` et `X-Forwarded-Port=443`; les URLs de pages, assets et
+formulaires sont alors générées exclusivement en HTTPS.
 
 Variables non secrètes acceptées :
 
